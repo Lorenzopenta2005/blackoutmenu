@@ -9,6 +9,7 @@ const { createClient } = require('@supabase/supabase-js');
 
 const PORT = process.env.PORT || 3002;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
+const ADMIN_SECRET_PATH = process.env.ADMIN_SECRET_PATH || 'admin-panel';
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_KEY;
 
@@ -199,8 +200,15 @@ const serveHtml = (file) => (req, res) => {
 
 app.get('/', serveHtml('cibo-drink.html'));
 app.get('/cibo-drink', serveHtml('cibo-drink.html'));
-app.get('/admin', serveHtml('admin-cibo-drink.html'));
-app.get('/admin-cibo-drink', serveHtml('admin-cibo-drink.html'));
+
+// Pannello admin — accessibile SOLO tramite il percorso segreto
+app.get('/' + ADMIN_SECRET_PATH, serveHtml('admin-cibo-drink.html'));
+
+// Tutte le altre route /admin* restituiscono 404 (nessuna discovery)
+app.get('/admin', (req, res) => res.status(404).send('Not found'));
+app.get('/admin-cibo-drink', (req, res) => res.status(404).send('Not found'));
+
+logger.info(`Admin path: /${ADMIN_SECRET_PATH} (tienilo segreto!)`);
 
 // =============================================================================
 // MIDDLEWARE — auth guard
