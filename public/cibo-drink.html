@@ -753,7 +753,13 @@
 
         if (key === 'gin') {
           const ginGroups = {};
-          grouped.get(key).items.forEach(item => {
+          // Ordina per 'ordine' prima di raggruppare per tipologia
+          const ginItems = [...grouped.get(key).items].sort((a, b) => {
+            const ao = a.ordine ?? Number.MAX_SAFE_INTEGER;
+            const bo = b.ordine ?? Number.MAX_SAFE_INTEGER;
+            return ao - bo;
+          });
+          ginItems.forEach(item => {
             let style = (item.tipologia || '').trim().toUpperCase();
             if (!style) {
               style = 'ALTRI GIN';
@@ -783,7 +789,13 @@
             });
           });
         } else {
-          grouped.get(key).items.forEach(item => {
+          // Ordina per campo 'ordine' (null/undefined vanno in fondo)
+          const sortedItems = [...grouped.get(key).items].sort((a, b) => {
+            const ao = a.ordine ?? Number.MAX_SAFE_INTEGER;
+            const bo = b.ordine ?? Number.MAX_SAFE_INTEGER;
+            return ao - bo;
+          });
+          sortedItems.forEach(item => {
             section.appendChild(buildItemRow(item));
           });
         }
