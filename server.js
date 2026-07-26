@@ -245,12 +245,13 @@ app.get('/api/admin/menu', requireAdmin, async (req, res) => {
 // Aggiungi voce
 app.post('/api/admin/menu', requireAdmin, async (req, res) => {
   try {
-    const { name, description, price, macro_category, sub_category, badge, available, immagine_url, allergeni } = req.body;
+    const { name, description, price, macro_category, sub_category, badge, available, immagine_url, allergeni, tipologia } = req.body;
     const item = await db.addMenuItem({
       name, description,
       price: parseFloat(price),
       macro_category, sub_category, badge, available, immagine_url,
       allergeni: Array.isArray(allergeni) ? allergeni : null,
+      tipologia: tipologia || null,
     });
     if (!item) throw new Error('Salvataggio fallito. Verifica la service_role key nel file .env.');
     io.emit('menu_aggiornato', await db.getMenuDisponibile());

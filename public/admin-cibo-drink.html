@@ -704,7 +704,7 @@
             <label class="edit-label">Badge commerciale</label>
             <select class="edit-input" id="e-badge-${item.id}">${buildBadgeOptions(item.badge)}</select>
           </div>
-          <div class="span-2" id="e-tipologia-container-${item.id}" style="display: ${item.sub_category === 'Gin' ? 'block' : 'none'};">
+          <div class="span-2" id="e-tipologia-container-${item.id}" style="display: ${(item.sub_category || '').toLowerCase().includes('gin') ? 'block' : 'none'};">
             <label class="edit-label">Tipologia Gin</label>
             <select class="edit-input" id="e-tipologia-${item.id}">
               <option value="" ${!item.tipologia ? 'selected' : ''}>-- Nessuna Tipologia --</option>
@@ -814,7 +814,7 @@
       const image = document.getElementById('e-image-' + id).value.trim() || null;
       
       let tipologia = null;
-      if (sub === 'Gin') {
+      if (sub.toLowerCase().includes('gin')) {
         const tipEl = document.getElementById('e-tipologia-' + id);
         if (tipEl) tipologia = tipEl.value || null;
       }
