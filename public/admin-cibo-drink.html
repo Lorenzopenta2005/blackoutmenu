@@ -298,14 +298,14 @@
                 <label>Badge commerciale</label>
                 <select id="drink-badge"></select>
               </div>
-              <div class="form-group span-2">
+              <div class="form-group span-2" id="drink-tipologia-wrap">
                 <label>Tipologia Gin (Compila SOLO se è un Gin)</label>
                 <select id="drink-tipologia">
                   <option value="">-- Nessuna Tipologia --</option>
                   <option value="STILE ORIENTALE">Stile Orientale</option>
-                  <option value="LONDON DRY & CLASSICI">London Dry & Classici</option>
-                  <option value="MEDITERRANEI & ERBACEI">Mediterranei & Erbacei</option>
-                  <option value="FRUTTATI & SPECIALI">Fruttati & Speciali</option>
+                  <option value="LONDON DRY & CLASSICI">London Dry &amp; Classici</option>
+                  <option value="MEDITERRANEI & ERBACEI">Mediterranei &amp; Erbacei</option>
+                  <option value="FRUTTATI & SPECIALI">Fruttati &amp; Speciali</option>
                   <option value="ALTRI GIN">Altri Gin</option>
                 </select>
               </div>
@@ -354,6 +354,18 @@
       fillBadgeSelect('drink-badge');
       fillAllergenGrid('cucina-allergen-grid', []);
       fillAllergenGrid('drink-allergen-grid', []);
+
+      // Mostra/nasconde il campo tipologia gin in base alla sottocategoria scelta
+      const drinkSubSel = document.getElementById('drink-sub');
+      const tipologiaWrap = document.getElementById('drink-tipologia-wrap');
+      function updateTipologiaVisibility() {
+        const val = drinkSubSel.value.toLowerCase();
+        if (tipologiaWrap) tipologiaWrap.style.display = val.includes('gin') ? '' : 'none';
+      }
+      if (drinkSubSel) {
+        drinkSubSel.addEventListener('change', updateTipologiaVisibility);
+        updateTipologiaVisibility();
+      }
     }
 
     const ALLERGEN_MAP = {
@@ -485,6 +497,12 @@
         groupContainer.style.gap = '10px';
 
         const groupItems = grouped.get(key).items;
+        // Ordina per campo 'ordine' (null/undefined vanno in fondo)
+        groupItems.sort((a, b) => {
+          const ao = a.ordine ?? Number.MAX_SAFE_INTEGER;
+          const bo = b.ordine ?? Number.MAX_SAFE_INTEGER;
+          return ao - bo;
+        });
         groupItems.forEach((item, index) => {
           groupContainer.appendChild(buildItemCard(item, groupItems, index));
         });
@@ -612,7 +630,7 @@
       if (targetIndex < 0 || targetIndex >= groupItems.length) return;
 
       const swapItem = groupItems[targetIndex];
-      
+
       // Ensure they have valid order values (if null, initialize them based on current position)
       if (item.ordine == null || swapItem.ordine == null) {
         groupItems.forEach((it, idx) => { it.ordine = idx * 10; });
@@ -625,9 +643,15 @@
 
       // Ensure they are actually different to force a reorder in db
       if (item.ordine === swapItem.ordine) {
-         item.ordine = targetIndex * 10;
-         swapItem.ordine = index * 10;
+        item.ordine = targetIndex * 10;
+        swapItem.ordine = index * 10;
       }
+
+      // Aggiorna anche l'array globale menuItems così il re-render locale rispecchia le posizioni
+      const idxA = menuItems.findIndex(i => i.id === item.id);
+      const idxB = menuItems.findIndex(i => i.id === swapItem.id);
+      if (idxA !== -1) menuItems[idxA].ordine = item.ordine;
+      if (idxB !== -1) menuItems[idxB].ordine = swapItem.ordine;
 
       try {
         const res = await fetch('/api/admin/menu/reorder', {
@@ -637,8 +661,6 @@
         });
         const data = await res.json();
         if (data.success) {
-          // No need to manually refresh menuItems as io.emit('admin_menu_aggiornato') will trigger it
-          // But to be snappy, we can re-render immediately locally
           renderAll();
         } else {
           notify(data.message || 'Errore durante il riordinamento', 'error');
@@ -737,7 +759,7 @@
       const image = document.getElementById(key + '-image').value.trim() || null;
       
       let tipologia = null;
-      if (macro === 'Drink' && sub === 'Gin') {
+      if (macro === 'Drink' && sub.toLowerCase().includes('gin')) {
         const tipEl = document.getElementById('drink-tipologia');
         if (tipEl) tipologia = tipEl.value || null;
       }

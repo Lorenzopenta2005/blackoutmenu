@@ -1,16 +1,16 @@
-const path            = require('path');
+const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
-const express         = require('express');
+const express = require('express');
 const { createServer } = require('http');
-const { Server }      = require('socket.io');
-const helmet          = require('helmet');
-const fs              = require('fs');
+const { Server } = require('socket.io');
+const helmet = require('helmet');
+const fs = require('fs');
 const { createClient } = require('@supabase/supabase-js');
 
-const PORT           = process.env.PORT           || 3002;
+const PORT = process.env.PORT || 3002;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
-const SUPABASE_URL   = process.env.SUPABASE_URL;
-const SUPABASE_KEY   = process.env.SUPABASE_KEY;
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_KEY = process.env.SUPABASE_KEY;
 
 if (!SUPABASE_URL || !SUPABASE_KEY) {
   console.error('[FATAL] SUPABASE_URL e SUPABASE_KEY sono obbligatorie nel file .env');
@@ -24,8 +24,8 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 // =============================================================================
 
 const logger = {
-  info:  (msg)      => console.log(`[INFO]  ${new Date().toISOString()} ${msg}`),
-  warn:  (msg)      => console.warn(`[WARN]  ${new Date().toISOString()} ${msg}`),
+  info: (msg) => console.log(`[INFO]  ${new Date().toISOString()} ${msg}`),
+  warn: (msg) => console.warn(`[WARN]  ${new Date().toISOString()} ${msg}`),
   error: (msg, err) => console.error(`[ERROR] ${new Date().toISOString()} ${msg}`, err || ''),
 };
 
@@ -131,7 +131,7 @@ const db = {
     // updates is an array of { id, ordine }
     if (!Array.isArray(updates) || updates.length === 0) return true;
     // Purtroppo supabase js non ha un vero batch update semplice, facciamo un loop
-    const promises = updates.map(u => 
+    const promises = updates.map(u =>
       supabase.from('menu_generale').update({ ordine: u.ordine }).eq('id', u.id)
     );
     const results = await Promise.all(promises);
@@ -176,9 +176,9 @@ const db = {
 // APP SETUP
 // =============================================================================
 
-const app        = express();
+const app = express();
 const httpServer = createServer(app);
-const io         = new Server(httpServer, {
+const io = new Server(httpServer, {
   cors: { origin: process.env.NODE_ENV === 'production' ? false : '*', methods: ['GET', 'POST'] },
 });
 
@@ -193,13 +193,13 @@ app.use(express.static(__dirname));
 // ── HTML routes ──
 const serveHtml = (file) => (req, res) => {
   const inPublic = path.join(__dirname, 'public', file);
-  const inRoot   = path.join(__dirname, file);
+  const inRoot = path.join(__dirname, file);
   res.sendFile(fs.existsSync(inPublic) ? inPublic : inRoot);
 };
 
-app.get('/',                 serveHtml('cibo-drink.html'));
-app.get('/cibo-drink',       serveHtml('cibo-drink.html'));
-app.get('/admin',            serveHtml('admin-cibo-drink.html'));
+app.get('/', serveHtml('cibo-drink.html'));
+app.get('/cibo-drink', serveHtml('cibo-drink.html'));
+app.get('/admin', serveHtml('admin-cibo-drink.html'));
 app.get('/admin-cibo-drink', serveHtml('admin-cibo-drink.html'));
 
 // =============================================================================
