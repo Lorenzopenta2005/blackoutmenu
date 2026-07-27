@@ -535,6 +535,21 @@
       border-top: 1px solid var(--border);
     }
 
+    .frozen-notice {
+      display: inline-block;
+      max-width: 92%;
+      margin: 0 auto 18px;
+      padding: 10px 16px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px dashed rgba(255, 255, 255, 0.18);
+      border-radius: 8px;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.72rem;
+      color: #aaaaaa;
+      line-height: 1.4;
+      text-align: center;
+    }
+
     .footer-handle {
       font-family: 'Inter', sans-serif;
       font-size: 0.68rem;
@@ -665,6 +680,9 @@
   </div>
 
   <footer>
+    <div class="frozen-notice">
+      * I prodotti contrassegnati con l'asterisco (*) sono congelati / surgelati.
+    </div>
     <div class="footer-handle">@blackoutpubcarpi</div>
     <a href="/allergeni.html" class="footer-allergeni">
       <span class="footer-allergeni-icon">⚠</span>
@@ -834,11 +852,14 @@
       info.appendChild(name);
 
       if (item.description) {
-        const desc = document.createElement('div');
-        desc.className = 'item-desc';
-        // Non forziamo il minuscolo per non rovinare le maiuscole (es. Veneto, DOC)
-        desc.textContent = item.description.trim();
-        info.appendChild(desc);
+        const formattedDesc = MenuConfig.formatDescription(item.description);
+        if (formattedDesc) {
+          const desc = document.createElement('div');
+          desc.className = 'item-desc';
+          // Non forziamo il minuscolo per non rovinare le maiuscole (es. Veneto, DOC)
+          desc.textContent = formattedDesc;
+          info.appendChild(desc);
+        }
       }
 
       // ── Allergeni ──

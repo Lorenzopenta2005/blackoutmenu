@@ -589,7 +589,8 @@
         nome.appendChild(promo);
       }
       const meta = document.createElement('div'); meta.className = 'item-meta';
-      meta.textContent = '€' + parseFloat(item.price).toFixed(2) + (item.description ? ' — ' + item.description : '');
+      const formattedDesc = item.description ? MenuConfig.formatDescription(item.description) : '';
+      meta.textContent = '€' + parseFloat(item.price).toFixed(2) + (formattedDesc ? ' — ' + formattedDesc : '');
       const badge = document.createElement('div'); badge.className = 'item-sub-badge'; badge.textContent = item.sub_category;
       info.appendChild(nome); info.appendChild(meta); info.appendChild(badge);
       card.appendChild(info);

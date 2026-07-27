@@ -116,6 +116,14 @@
     return BADGE_TYPES[norm] || BADGE_TYPES[norm.toUpperCase()] || null;
   }
 
+  function formatDescription(str) {
+    if (!str || typeof str !== 'string') return '';
+    return str
+      .replace(/(?<!\d),(?!\d)\s*|,\s+/g, ' - ')
+      .replace(/\s*-\s*(?:-\s*)+/g, ' - ')
+      .trim();
+  }
+
   global.MenuConfig = {
     SUB_CATEGORY_CONFIG,
     BADGE_TYPES,
@@ -126,5 +134,7 @@
     getSubCategoryOptions,
     normalizeBadge,
     getBadgeMeta,
+    formatDescription,
   };
 })(typeof window !== 'undefined' ? window : global);
+
