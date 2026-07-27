@@ -462,6 +462,199 @@
       box-shadow: 0 10px 40px rgba(232, 0, 14, 0.25);
     }
 
+    /* ── SAUCES BADGE BUTTON ── */
+    .sauces-btn {
+      display: inline-flex;
+      align-items: center;
+      margin-top: 8px;
+      padding: 6px 12px;
+      background: rgba(232, 0, 14, 0.12);
+      border: 1.5px solid rgba(232, 0, 14, 0.5);
+      border-radius: 20px;
+      color: #ff5560;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      line-height: 1.35;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      width: fit-content;
+      max-width: 100%;
+    }
+
+    .sauces-btn:hover, .sauces-btn:active {
+      background: rgba(232, 0, 14, 0.25);
+      border-color: rgba(232, 0, 14, 0.8);
+      color: #ffffff;
+    }
+
+    /* ── SAUCES MODAL ── */
+    .sauces-modal-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    .sauces-modal-backdrop.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .sauces-modal-content {
+      background: #111111;
+      border: 1px solid var(--border-light);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 480px;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 30px rgba(232, 0, 14, 0.15);
+      overflow: hidden;
+      transform: scale(0.95);
+      transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .sauces-modal-backdrop.active .sauces-modal-content {
+      transform: scale(1);
+    }
+
+    .sauces-modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px 8px;
+      border-bottom: 1px solid #1a1a1a;
+    }
+
+    .sauces-modal-title {
+      font-family: 'Oswald', sans-serif;
+      font-size: 1.3rem;
+      font-weight: 600;
+      letter-spacing: 1px;
+      color: var(--white);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-transform: uppercase;
+    }
+
+    .sauces-modal-close {
+      background: none;
+      border: none;
+      color: #888888;
+      font-size: 1.8rem;
+      line-height: 1;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 50%;
+      transition: color 0.15s;
+    }
+
+    .sauces-modal-close:hover {
+      color: var(--white);
+    }
+
+    .sauces-modal-sub {
+      padding: 8px 20px 12px;
+      font-size: 0.75rem;
+      color: var(--gray);
+      border-bottom: 1px solid #1a1a1a;
+    }
+
+    .sauces-modal-list {
+      padding: 12px 16px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 55vh;
+    }
+
+    .sauce-item-card {
+      background: #181818;
+      border: 1px solid #242424;
+      border-radius: 10px;
+      padding: 12px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .sauce-item-info {
+      flex: 1;
+    }
+
+    .sauce-item-name {
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--white);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .sauce-item-desc {
+      font-size: 0.75rem;
+      color: var(--gray-light);
+      margin-top: 4px;
+      line-height: 1.35;
+    }
+
+    .sauce-item-price {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--red);
+      white-space: nowrap;
+      background: rgba(232, 0, 14, 0.1);
+      padding: 3px 8px;
+      border-radius: 6px;
+      border: 1px solid rgba(232, 0, 14, 0.25);
+    }
+
+    .sauces-modal-footer {
+      padding: 12px 20px;
+      border-top: 1px solid #1a1a1a;
+      text-align: center;
+      background: #0d0d0d;
+    }
+
+    .sauces-modal-btn-close {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      background: #222222;
+      border: 1px solid #333333;
+      color: var(--white);
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.9rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .sauces-modal-btn-close:hover {
+      background: #333333;
+    }
+
     .modal-close {
       position: absolute;
       top: 20px;
@@ -641,6 +834,27 @@
   <div id="imageModal" onclick="closeModal()">
     <button class="modal-close" onclick="closeModal()">×</button>
     <img id="modalImage" src="" alt="Zoom" onclick="event.stopPropagation()">
+  </div>
+
+  <!-- SAUCES MODAL -->
+  <div id="saucesModal" class="sauces-modal-backdrop" onclick="closeSaucesModal(event)">
+    <div class="sauces-modal-content" onclick="event.stopPropagation()">
+      <div class="sauces-modal-header">
+        <div class="sauces-modal-title">
+          LE NOSTRE SALSE
+        </div>
+        <button type="button" class="sauces-modal-close" onclick="closeSaucesModal()">&times;</button>
+      </div>
+      <div class="sauces-modal-sub">
+        Tutte le salse disponibili per personalizzare, aggiungere o sostituire gli ingredienti del tuo piatto.
+      </div>
+      <div class="sauces-modal-list" id="saucesModalList">
+        <!-- Loaded dynamically -->
+      </div>
+      <div class="sauces-modal-footer">
+        <button type="button" class="sauces-modal-btn-close" onclick="closeSaucesModal()">Chiudi</button>
+      </div>
+    </div>
   </div>
 
   <!-- STICKY HEADER WRAPPER -->
@@ -862,6 +1076,15 @@
         }
       }
 
+      if (shouldShowSauceBadge(item)) {
+        const sauceBtn = document.createElement('button');
+        sauceBtn.type = 'button';
+        sauceBtn.className = 'sauces-btn';
+        sauceBtn.onclick = (e) => openSaucesModal(e);
+        sauceBtn.textContent = getSauceButtonText(item);
+        info.appendChild(sauceBtn);
+      }
+
       // ── Allergeni ──
       const allergenList = Array.isArray(item.allergeni) ? item.allergeni : null;
       if (allergenList && allergenList.length > 0) {
@@ -944,6 +1167,123 @@
       const modal = document.getElementById('imageModal');
       modal.classList.remove('active');
       setTimeout(() => { document.getElementById('modalImage').src = ''; }, 300);
+    }
+
+    /* ── SAUCES MODAL LOGIC ── */
+    function shouldShowSauceBadge(item) {
+      if (!item || item.sub_category === 'Salse') return false;
+      if (item.macro_category !== 'Cucina') return false;
+
+      const sub = (item.sub_category || '').toLowerCase();
+      if (sub.includes('dolci')) return false;
+
+      const text = ((item.name || '') + ' ' + (item.description || '')).toLowerCase();
+      const sauceRegex = /\b(salsa|salse|mayo|maionese|mayonese|ketchup|senape|bbq|teriyaki|teriaky|blacksauce)\b/i;
+      const categoriesWithSauces = ['hamburger', 'fritti', 'piade e panini', 'piadine e panini', 'vegan'];
+
+      return sauceRegex.test(text) || categoriesWithSauces.some(c => sub.includes(c));
+    }
+
+    function getSauceButtonText(item) {
+      const desc = ((item.description || '') + ' ' + (item.name || '')).toLowerCase();
+      if (desc.includes('salse a scelta') || desc.includes('salsa a scelta')) {
+        return 'SALSE DISPONIBILI (Clicca per vedere la lista)';
+      }
+      const specificSauceRegex = /\b(salsa|mayo|maionese|mayonese|ketchup|senape|bbq|teriyaki|teriaky|blacksauce|dressing)\b/i;
+      if (specificSauceRegex.test(desc)) {
+        return 'SALSA PRESENTE NEL PANINO (Clicca per modificare o aggiungere)';
+      }
+      return 'SALSE DISPONIBILI (Clicca per vedere la lista)';
+    }
+
+    function openSaucesModal(e) {
+      if (e) e.stopPropagation();
+
+      const modal = document.getElementById('saucesModal');
+      const listEl = document.getElementById('saucesModalList');
+      listEl.innerHTML = '';
+
+      // Filter available sauces from _allItems dynamically
+      const sauces = _allItems.filter(item => {
+        if (!item.available) return false;
+        const resolved = MenuConfig.resolveSubCategory('Cucina', item.sub_category);
+        return resolved.key === 'salse' || (item.sub_category || '').toLowerCase().trim() === 'salse';
+      });
+
+      // Sort by ordine then name
+      sauces.sort((a, b) => {
+        const ao = a.ordine ?? Number.MAX_SAFE_INTEGER;
+        const bo = b.ordine ?? Number.MAX_SAFE_INTEGER;
+        if (ao !== bo) return ao - bo;
+        return a.name.localeCompare(b.name);
+      });
+
+      if (sauces.length === 0) {
+        listEl.innerHTML = '<div style="text-align:center; padding: 24px; color: #888; font-size: 0.85rem;">Al momento non ci sono salse disponibili.</div>';
+      } else {
+        sauces.forEach(sauce => {
+          const card = document.createElement('div');
+          card.className = 'sauce-item-card';
+
+          const info = document.createElement('div');
+          info.className = 'sauce-item-info';
+
+          const name = document.createElement('div');
+          name.className = 'sauce-item-name';
+          name.textContent = sauce.name;
+          info.appendChild(name);
+
+          if (sauce.description) {
+            const desc = document.createElement('div');
+            desc.className = 'sauce-item-desc';
+            desc.textContent = MenuConfig.formatDescription(sauce.description);
+            info.appendChild(desc);
+          }
+
+          // Allergeni if present
+          const allergenList = Array.isArray(sauce.allergeni) ? sauce.allergeni : null;
+          if (allergenList && allergenList.length > 0) {
+            const ALLERGEN_NAMES = {
+              1: 'Cereali con glutine', 2: 'Crostacei', 3: 'Uova', 4: 'Pesce',
+              5: 'Arachidi', 6: 'Soia', 7: 'Latte e derivati', 8: 'Frutta a guscio',
+              9: 'Sedano', 10: 'Senape', 11: 'Semi di sesamo', 12: 'Solfiti',
+              13: 'Lupini', 14: 'Molluschi',
+            };
+            const allergenRow = document.createElement('div');
+            allergenRow.className = 'item-allergens';
+            allergenRow.style.marginTop = '6px';
+
+            const lbl = document.createElement('span');
+            lbl.className = 'item-allergens-label';
+            lbl.textContent = 'All.:';
+            allergenRow.appendChild(lbl);
+
+            allergenList.sort((a, b) => a - b).forEach(num => {
+              const badge = document.createElement('span');
+              badge.className = 'allergen-badge';
+              badge.textContent = num;
+              badge.title = (num + '. ' + (ALLERGEN_NAMES[num] || ''));
+              allergenRow.appendChild(badge);
+            });
+            info.appendChild(allergenRow);
+          }
+
+          card.appendChild(info);
+          listEl.appendChild(card);
+        });
+      }
+
+      modal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeSaucesModal(e) {
+      if (e && e.target !== e.currentTarget && !e.target.classList.contains('sauces-modal-close') && !e.target.classList.contains('sauces-modal-btn-close') && e.target.id !== 'saucesModal') {
+        return;
+      }
+      const modal = document.getElementById('saucesModal');
+      modal.classList.remove('active');
+      document.body.style.overflow = '';
     }
 
     /* ── Build sticky sub-nav pills ── */

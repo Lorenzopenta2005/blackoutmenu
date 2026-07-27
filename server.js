@@ -352,7 +352,7 @@ initDB().then(() => {
   httpServer.listen(PORT, () => {
     logger.info(`Server avviato su :${PORT}`);
     logger.info(`Cliente → http://localhost:${PORT}/`);
-    logger.info(`Admin   → http://localhost:${PORT}/admin`);
+    logger.info(`Admin   → http://localhost:${PORT}/${ADMIN_SECRET_PATH}`);
   });
 });
 
