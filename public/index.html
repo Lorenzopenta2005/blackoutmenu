@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BlackOut Pub — Menu</title>
+  <meta name="description" content="Il menu del BlackOut Pub: birre alla spina e in lattina, cucina, cocktail, gin e molto altro. Aggiornato in tempo reale.">
+  <meta name="theme-color" content="#050505">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23000'/%3E%3Ctext x='16' y='24' font-family='Arial,sans-serif' font-weight='700' font-size='22' fill='%23e8000e' text-anchor='middle' transform='matrix(-1 0 0 1 32 0)'%3EK%3C/text%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #050505;
+      --surface: #0d0d0d;
+      --surface-2: #151515;
+      --border: #1f1f1f;
+      --border-2: #2c2c2c;
+      --text: #f4f4f4;
+      --text-2: #c8c8c8;
+      --muted: #9e9e9e;
+      --red: #e8000e;
+      --red-glow: rgba(232, 0, 14, 0.35);
+      --red-soft: rgba(232, 0, 14, 0.12);
+      --gold: #ffb020;
+      --price: #ff5a5f;   /* rosso tenue dei prezzi: si legge bene senza urlare */
+      --green: #22c55e;
+      --blue: #60a5fa;
+      --display: 'Oswald', 'Arial Narrow', sans-serif;
+      --body: 'Inter', 'Segoe UI', system-ui, sans-serif;
+    }
+
+    html { -webkit-text-size-adjust: 100%; }
+    body { font-family: var(--body); background: var(--bg); color: var(--text); min-height: 100vh; line-height: 1.4; }
+    button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+    :focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
+
+    /* ── HERO ── */
+    .hero {
+      text-align: center;
+      padding: 26px 20px 16px;
+      background: radial-gradient(120% 90% at 50% -20%, rgba(232, 0, 14, 0.28), transparent 65%);
+    }
+    .logo { font-family: var(--display); font-weight: 700; font-size: 2.6rem; letter-spacing: 0.18em; line-height: 1; text-transform: uppercase; }
+    /* il K ribaltato sposta la spaziatura a sinistra: la riportiamo a destra */
+    .logo .k { display: inline-block; color: var(--red); transform: scaleX(-1); margin-left: -0.18em; margin-right: 0.18em; text-shadow: 0 0 18px var(--red-glow); }
+    .tagline { margin-top: 8px; font-size: 0.74rem; font-weight: 600; letter-spacing: 0.42em; text-transform: uppercase; color: var(--muted); }
+
+    /* ── NAV (sticky) ── */
+    .nav { position: sticky; top: 0; z-index: 20; background: rgba(5, 5, 5, 0.94); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); border-bottom: 1px solid var(--border); }
+    .tabs { display: flex; gap: 8px; max-width: 640px; margin: 0 auto; padding: 10px 14px 8px; }
+    .tab {
+      flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px;
+      min-height: 54px; border-radius: 12px; border: 1px solid var(--border-2); background: var(--surface-2); color: var(--text-2);
+      font-family: var(--display); font-size: 1.08rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
+      transition: background 0.15s, color 0.15s, border-color 0.15s, box-shadow 0.15s;
+    }
+    .tab svg { width: 20px; height: 20px; flex-shrink: 0; }
+    .tab:hover { color: var(--text); border-color: #3a3a3a; }
+    .tab[aria-selected="true"] { background: var(--red); border-color: var(--red); color: #fff; box-shadow: 0 6px 22px var(--red-glow); }
+
+    .pills-scroll {
+      overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch;
+      -webkit-mask-image: linear-gradient(90deg, transparent, #000 14px, #000 calc(100% - 14px), transparent);
+      mask-image: linear-gradient(90deg, transparent, #000 14px, #000 calc(100% - 14px), transparent);
+    }
+    .pills-scroll::-webkit-scrollbar { display: none; }
+    .pills { display: flex; gap: 6px; width: max-content; min-width: 100%; justify-content: center; padding: 2px 14px 10px; }
+    .pills:empty { display: none; }
+    .pill {
+      min-height: 42px; padding: 9px 17px; border: 1px solid var(--border-2); border-radius: 999px; white-space: nowrap;
+      font-family: var(--display); font-size: 0.92rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-2);
+      transition: background 0.12s, color 0.12s, border-color 0.12s;
+    }
+    .pill:hover { border-color: #555; color: var(--text); }
+    .pill[aria-pressed="true"] { background: var(--text); border-color: var(--text); color: #000; }
+
+    /* ── CONTENT ── */
+    .page { max-width: 760px; margin: 0 auto; padding: 22px 14px 48px; min-height: 60vh; }
+    .page.fade article { animation: fadeUp 0.35s ease both; }
+    /* bagliore breve su una card cambiata live */
+    .tap, .item, .can { position: relative; }
+    .flash::after { content: ''; position: absolute; inset: -1px; border-radius: inherit; pointer-events: none; box-shadow: 0 0 0 2px var(--red), 0 0 28px var(--red-glow); animation: flashOut 2.4s ease-out forwards; }
+    @keyframes flashOut { 0%, 35% { opacity: 1; } 100% { opacity: 0; } }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } }
+
+    .sec-head { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+    .sec-head::before { content: ''; width: 3px; height: 20px; border-radius: 2px; background: var(--red); flex-shrink: 0; }
+    .sec-head::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+    .sec-title { font-family: var(--display); font-size: 1.35rem; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; }
+    .sec-count { order: 3; font-size: 0.68rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); }
+    /* titolo di gruppo (tipo di vino, stile di gin): fascia ben visibile con il colore del gruppo */
+    .sub-head { display: flex; align-items: center; gap: 10px; margin: 30px 0 4px; padding: 13px 14px; border-radius: 12px; border-left: 5px solid var(--gc, var(--red)); background: var(--surface-2); font-family: var(--display); font-size: 1.25rem; font-weight: 600; letter-spacing: 0.08em; color: var(--text); text-transform: uppercase; scroll-margin-top: 170px; }
+    .sub-head::before { content: ''; width: 13px; height: 13px; border-radius: 50%; background: var(--gc, var(--red)); flex-shrink: 0; }
+    .sub-head span { margin-left: auto; font-family: var(--body); font-size: 0.85rem; font-weight: 500; letter-spacing: 0; text-transform: none; color: var(--muted); }
+    .sub-hint { margin: 8px 2px 2px; text-align: left; font-size: 0.88rem; color: var(--muted); }
+    /* pulsanti per saltare ai gruppi (stili di gin, tipi di vino) */
+    .jump { display: flex; flex-wrap: wrap; gap: 6px; margin: -4px 0 8px; }
+    .jump button { min-height: 40px; padding: 8px 14px; border: 1px solid var(--border-2); border-radius: 999px; font-family: var(--display); font-size: 0.84rem; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-2); }
+    .jump button span { margin-left: 5px; color: var(--muted); }
+    .jump button::before { content: ''; display: inline-block; width: 9px; height: 9px; margin-right: 7px; border-radius: 50%; background: var(--gc, var(--red)); vertical-align: 1px; }
+    .jump button:hover { border-color: #555; color: var(--text); }
+    .empty { text-align: center; padding: 56px 20px; font-family: var(--display); font-size: 0.85rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); }
+
+    /* immagine tonda con fallback icona */
+    .thumb { position: relative; display: grid; place-items: center; border-radius: 50%; overflow: hidden; background: #111; color: #3d3d3d; flex-shrink: 0; }
+    .thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    .thumb svg { width: 45%; height: 45%; }
+
+    .flags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+    .flag { padding: 1px 8px; border-radius: 999px; font-size: 0.58rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; }
+    .flag-gf { color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.4); }
+    .flag-na { color: var(--blue); border: 1px solid rgba(96, 165, 250, 0.4); }
+
+    /* ── SPINE ── */
+    .tap-grid { display: grid; gap: 12px; }
+    .tap {
+      display: grid; grid-template-columns: 76px 1fr; gap: 14px 16px; align-items: center;
+      padding: 16px; border-radius: 16px; border: 1px solid var(--border);
+      background: linear-gradient(180deg, var(--surface-2), var(--surface));
+    }
+    .tap-media { position: relative; width: 76px; height: 76px; }
+    .tap-media .thumb { width: 100%; height: 100%; box-shadow: 0 0 0 2px var(--surface-2), 0 0 0 3.5px var(--red), 0 8px 20px rgba(232, 0, 14, 0.22); }
+    .tap-num {
+      position: absolute; top: -6px; left: -6px; min-width: 26px; height: 26px; padding: 0 6px; border-radius: 13px;
+      display: grid; place-items: center; background: var(--red); color: #fff; box-shadow: 0 0 0 3px var(--surface-2);
+      font-family: var(--display); font-size: 0.8rem; font-weight: 600;
+    }
+    .tap-info { min-width: 0; }
+    .tap-style { font-family: var(--display); font-size: 1.32rem; font-weight: 600; line-height: 1.1; letter-spacing: 0.04em; text-transform: uppercase; }
+    .tap-name { margin-top: 3px; font-size: 0.95rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-2); }
+    .tap-meta { margin-top: 2px; font-size: 0.88rem; color: var(--muted); }
+    .brewery { text-transform: uppercase; letter-spacing: 0.04em; }
+    .tap-prices { grid-column: 1 / -1; display: flex; gap: 8px; padding-top: 12px; border-top: 1px dashed var(--border-2); }
+    /* etichetta sopra, prezzo sotto: stessa forma per ogni formato, niente a capo a metà */
+    .price-chip { flex: 1; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 8px 12px; border-radius: 10px; border: 1px solid var(--border); background: rgba(255, 255, 255, 0.025); }
+    .price-chip small { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); }
+    .price-chip .volume { letter-spacing: 0.04em; text-transform: none; color: var(--text-2); }
+    .price-chip b { font-family: var(--display); font-size: 1.18rem; font-weight: 500; color: var(--price); }
+    .tap--empty { opacity: 0.55; }
+    .tap--empty .tap-media .thumb { box-shadow: 0 0 0 2px var(--surface-2), 0 0 0 3.5px var(--border-2); }
+    .tap--empty .tap-num { background: var(--border-2); }
+
+    /* ── LATTINE ── */
+    .search { position: relative; display: block; margin-bottom: 10px; }
+    .search svg { position: absolute; left: 14px; top: 50%; width: 16px; height: 16px; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
+    .search input { width: 100%; padding: 12px 14px 12px 40px; border-radius: 12px; border: 1px solid var(--border-2); background: var(--surface); color: var(--text); font: inherit; font-size: 1rem; }
+    .search input::placeholder { color: var(--muted); }
+    .search input:focus { outline: none; border-color: var(--red); }
+    .count { margin-bottom: 12px; text-align: center; font-size: 0.76rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); }
+    .can-list { display: grid; gap: 8px; }
+    .can { display: grid; grid-template-columns: 52px 1fr auto; gap: 14px; align-items: center; padding: 12px 16px 12px 12px; border-radius: 14px; border: 1px solid var(--border); background: var(--surface); }
+    .can .thumb { width: 52px; height: 52px; box-shadow: 0 0 0 1px var(--border-2); }
+    .can-info { min-width: 0; }
+    .can-style { font-family: var(--display); font-size: 1.12rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+    .can-name { font-size: 0.86rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-2); }
+    .can-meta { font-size: 0.84rem; color: var(--muted); }
+    .can-price { font-family: var(--display); font-size: 1.22rem; font-weight: 500; color: var(--price); white-space: nowrap; }
+
+    /* ── CUCINA / DRINK ── */
+    .item { display: flex; align-items: center; gap: 14px; padding: 16px 2px; border-bottom: 1px solid var(--border); }
+    .item-info { flex: 1; min-width: 0; }
+    .item-head { display: flex; align-items: baseline; gap: 12px; }
+    .item-name { flex: 1; font-family: var(--display); font-size: 1.22rem; font-weight: 500; line-height: 1.2; letter-spacing: 0.03em; text-transform: uppercase; }
+    /* prezzo discreto: stesso colore del testo e un filo più piccolo del nome */
+    .item-price { font-family: var(--display); font-size: 1.22rem; font-weight: 500; color: var(--price); white-space: nowrap; }
+    .abv-pill { display: inline-block; margin-left: 8px; padding: 1px 7px; border: 1px solid var(--border-2); border-radius: 999px; font-family: var(--body); font-size: 0.74rem; font-weight: 600; letter-spacing: 0.02em; color: var(--text-2); vertical-align: 3px; }
+    .wine-prices { display: flex; gap: 8px; margin-top: 10px; max-width: 360px; }
+    .item-desc { margin-top: 5px; font-size: 0.97rem; line-height: 1.5; color: var(--muted); }
+    .item-badge { display: inline-block; margin-bottom: 7px; padding: 3px 8px; border-radius: 4px; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; }
+    .badge-best-seller { background: var(--gold); color: #000; }
+    .badge-novita { background: var(--red); color: #fff; }
+    .badge-consigliato { background: var(--green); color: #000; }
+    /* allergeni scritti per nome: nessuno sa a memoria cosa sono "1 3 7" */
+    .item-all { margin-top: 8px; font-size: 0.9rem; line-height: 1.45; color: var(--text-2); }
+    .item-all-label { margin-right: 6px; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: #d24a4a; }
+    .item-tag { display: inline-block; margin-bottom: 7px; padding: 2px 8px; border: 1px solid var(--border-2); border-radius: 4px; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-2); }
+    .item-badge + .item-tag { margin-left: 6px; }
+    .link-salse { font-weight: 600; color: var(--text-2); text-decoration: underline; text-decoration-color: var(--red); text-underline-offset: 3px; }
+    .orario { display: flex; align-items: center; justify-content: center; gap: 8px; margin: -6px 0 18px; font-size: 0.92rem; font-weight: 500; color: var(--text-2); }
+    .orario svg { width: 16px; height: 16px; color: var(--red); flex-shrink: 0; }
+
+    /* ── LISTA DA MOSTRARE AL CAMERIERE ── */
+    .add { flex-shrink: 0; align-self: center; display: grid; place-items: center; width: 44px; height: 44px; margin: -8px 0; border-radius: 50%; border: 1.5px solid rgba(232, 0, 14, 0.55); font-family: var(--display); font-size: 1.6rem; font-weight: 500; transition: background 0.15s, border-color 0.15s, transform 0.15s; }
+    .add.in-lista, .price-chip.in-lista .add-n { background: var(--red); border-color: var(--red); color: #fff; }
+    .add:active, .price-chip:active { transform: scale(0.94); }
+    .wine-prices .price-chip { position: relative; padding-right: 50px; text-align: left; transition: border-color 0.15s, transform 0.15s; }
+    .price-chip .add-n { position: absolute; top: 50%; right: 10px; width: 32px; height: 32px; display: grid; place-items: center; transform: translateY(-50%); border-radius: 50%; border: 1.5px solid rgba(232, 0, 14, 0.55); font-family: var(--display); font-size: 1.05rem; font-weight: 600; }
+    .price-chip.in-lista { border-color: var(--red); }
+
+    .barra-lista {
+      position: fixed; left: 50%; bottom: 0; z-index: 30; width: min(100% - 24px, 600px); min-height: 62px; margin-bottom: calc(12px + env(safe-area-inset-bottom));
+      display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 18px; border-radius: 16px;
+      background: var(--red); color: #fff; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), 0 6px 22px var(--red-glow);
+      transform: translate(-50%, calc(100% + 24px)); visibility: hidden; transition: transform 0.25s ease, visibility 0s 0.25s;
+    }
+    .con-lista .barra-lista { transform: translate(-50%, 0); visibility: visible; transition: transform 0.25s ease; }
+    body.con-lista { padding-bottom: 92px; }
+    .barra-info { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.15; font-size: 0.85rem; font-weight: 600; }
+    .barra-info b { font-family: var(--display); font-size: 1.3rem; font-weight: 600; }
+    .barra-cta { font-family: var(--display); font-size: 1.08rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
+
+    .foglio { position: fixed; inset: 0; z-index: 90; overflow-y: auto; background: var(--bg); opacity: 0; visibility: hidden; transition: opacity 0.2s, visibility 0s 0.2s; }
+    .foglio.open { opacity: 1; visibility: visible; transition: opacity 0.2s; }
+    body.foglio-aperto { overflow: hidden; }
+    .foglio-box { max-width: 600px; margin: 0 auto; padding: 14px 16px calc(28px + env(safe-area-inset-bottom)); }
+    .foglio-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .foglio-top h2 { font-family: var(--display); font-size: 1.5rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; }
+    .foglio-chiudi { width: 48px; height: 48px; font-size: 2.2rem; line-height: 1; }
+    .foglio-avviso { margin: 8px 0 6px; padding: 12px 14px; border-radius: 12px; border: 1px solid rgba(255, 176, 32, 0.45); background: rgba(255, 176, 32, 0.08); font-size: 1rem; }
+    .foglio-avviso b { color: var(--gold); }
+    .lista-gruppo { margin: 22px 0 2px; font-family: var(--display); font-size: 0.95rem; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); }
+    /* scritte grandi: il cameriere le legge dal telefono del cliente, spesso a un braccio di distanza */
+    .lista-riga { display: grid; grid-template-columns: auto 1fr auto auto; align-items: center; gap: 10px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+    .lista-n { min-width: 2.1em; font-family: var(--display); font-size: 1.6rem; font-weight: 600; color: var(--price); }
+    .lista-nome { min-width: 0; }
+    .lista-nome b { display: block; font-family: var(--display); font-size: 1.4rem; font-weight: 500; line-height: 1.15; letter-spacing: 0.03em; text-transform: uppercase; overflow-wrap: anywhere; }
+    .lista-nome span { font-size: 0.9rem; color: var(--muted); }
+    .passo { width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--border-2); font-size: 1.4rem; line-height: 1; }
+    .foglio-totale { display: flex; justify-content: space-between; align-items: baseline; margin-top: 16px; font-family: var(--display); font-size: 1.3rem; letter-spacing: 0.1em; text-transform: uppercase; }
+    .foglio-totale b { font-size: 1.6rem; letter-spacing: 0; color: var(--price); }
+    .foglio-svuota { display: block; min-height: 44px; margin: 24px auto 0; padding: 10px 22px; border: 1px solid var(--border-2); border-radius: 999px; font-size: 0.85rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-2); }
+    /* foto a banner: sfuma leggera nel fondo e nome + prezzo ci si appoggiano sopra, così foto, titolo e descrizione sono un blocco unico */
+    .banner { position: relative; margin-bottom: 8px; }
+    .item-photo { display: block; width: 100%; height: clamp(210px, 58vw, 300px); border-radius: 16px 16px 0 0; overflow: hidden;
+      -webkit-mask-image: linear-gradient(to bottom, #000 55%, rgba(0, 0, 0, 0.6) 80%, transparent 100%);
+      mask-image: linear-gradient(to bottom, #000 55%, rgba(0, 0, 0, 0.6) 80%, transparent 100%); }
+    .item-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    /* il titolo lascia passare il tocco alla foto (si apre grande), il + invece resta cliccabile */
+    .banner .item-head { position: absolute; left: 2px; right: 2px; bottom: 4px; pointer-events: none; }
+    .banner .add { pointer-events: auto; }
+    .banner .add:not(.in-lista) { background: rgba(5, 5, 5, 0.7); }
+    .banner .item-name { font-size: 1.5rem; text-shadow: 0 2px 14px rgba(0, 0, 0, 0.95); }
+    .banner .item-price { font-size: 1.4rem; text-shadow: 0 2px 14px rgba(0, 0, 0, 0.95); }
+    .banner-tags { position: absolute; top: 12px; left: 12px; right: 12px; display: flex; flex-wrap: wrap; gap: 6px; pointer-events: none; }
+    .banner-tags:empty { display: none; }
+    .banner-tags .item-badge, .banner-tags .item-tag { margin: 0; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5); }
+    .banner-tags .item-tag { background: rgba(5, 5, 5, 0.8); }
+
+    /* ── FOOTER ── */
+    footer { padding: 28px 16px 36px; border-top: 1px solid var(--border); text-align: center; }
+    .note { display: inline-block; max-width: 520px; padding: 10px 16px; border: 1px dashed var(--border-2); border-radius: 10px; font-size: 0.84rem; color: var(--text-2); }
+    .footer-link { display: inline-flex; align-items: center; gap: 6px; margin-top: 16px; padding: 8px 18px; border: 1px solid rgba(232, 0, 14, 0.45); border-radius: 999px; font-size: 0.74rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #ff4d4d; text-decoration: none; }
+    .footer-link:hover { background: var(--red-soft); }
+    .footer-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 10px; margin-top: 16px; }
+    .footer-links .footer-link { margin-top: 0; }
+    .footer-link--soft { border-color: var(--border-2); color: var(--text-2); }
+    .review { display: block; max-width: 420px; margin: 0 auto 22px; padding: 16px 18px; border-radius: 14px; border: 1px solid var(--border-2); background: var(--surface); color: var(--text); text-decoration: none; }
+    .review:hover { border-color: #444; }
+    .review-stars { color: var(--gold); letter-spacing: 0.2em; font-size: 0.95rem; }
+    .review-title { display: block; margin-top: 4px; font-family: var(--display); font-size: 1.05rem; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; }
+    .review-sub { display: block; margin-top: 2px; font-size: 0.88rem; color: var(--muted); }
+
+    /* ── MODAL FOTO ── */
+    .modal { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 20px; background: rgba(0, 0, 0, 0.88); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); opacity: 0; pointer-events: none; transition: opacity 0.25s; }
+    .modal.open { opacity: 1; pointer-events: auto; }
+    .modal img { max-width: 100%; max-height: 80vh; border-radius: 14px; border: 1px solid var(--red); box-shadow: 0 10px 40px rgba(232, 0, 14, 0.25); }
+    .modal-close { position: absolute; top: 14px; right: 18px; font-size: 2.4rem; line-height: 1; color: #fff; }
+
+    @media (min-width: 640px) {
+      .tap-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 380px) {
+      .logo { font-size: 2.3rem; }
+      .tab { font-size: 0.9rem; letter-spacing: 0.08em; gap: 6px; }
+      .tab svg { width: 17px; height: 17px; }
+      .tap { grid-template-columns: 64px 1fr; padding: 14px; }
+      .tap-media { width: 64px; height: 64px; }
+      .item { gap: 10px; }
+      .item-name, .item-price { font-size: 1.12rem; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header class="hero">
+    <h1 class="logo">BLAC<span class="k">K</span>OUT</h1>
+    <p class="tagline">Birra — Panini — Biliardi</p>
+  </header>
+
+  <nav class="nav" id="nav" aria-label="Menu">
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" data-tab="birre">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 11h1a3 3 0 0 1 0 6h-1"/><path d="M5 8h12v12a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1z"/><path d="M5 8a3 3 0 0 1 3-4 3 3 0 0 1 3-1 3 3 0 0 1 3 1 3 3 0 0 1 3 4"/></svg>
+        Birre
+      </button>
+      <button class="tab" role="tab" data-tab="cucina">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11a8 8 0 0 1 16 0z"/><path d="M3 15h18"/><path d="M4 18h16a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/></svg>
+        Cucina
+      </button>
+      <button class="tab" role="tab" data-tab="drink">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16l-8 9z"/><path d="M12 13v7"/><path d="M8 20h8"/><path d="M15 4l3-2"/></svg>
+        Drink
+      </button>
+    </div>
+    <div class="pills-scroll" id="pillsScroll">
+      <div class="pills" id="pills"></div>
+    </div>
+  </nav>
+
+  <main class="page" id="content"></main>
+
+  <footer>
+    <!-- shortcut: apre la scheda su Google Maps; sostituire con il link diretto "Chiedi recensioni" del profilo Google dell'attività -->
+    <a class="review" href="https://www.google.com/maps/search/?api=1&amp;query=BlackOut+Pub+Carpi" target="_blank" rel="noopener">
+      <span class="review-stars" aria-hidden="true">★★★★★</span>
+      <span class="review-title">Ti è piaciuto?</span>
+      <span class="review-sub">Lasciaci una recensione su Google, ci aiuta tantissimo</span>
+    </a>
+    <p class="note">* I prodotti contrassegnati con l'asterisco (*) sono congelati / surgelati.</p>
+    <div class="footer-links">
+      <a href="/allergeni.html" class="footer-link">⚠ Informazioni sugli allergeni</a>
+      <a href="https://www.instagram.com/blackoutpubcarpi/" class="footer-link footer-link--soft" target="_blank" rel="noopener">Instagram @blackoutpubcarpi</a>
+    </div>
+  </footer>
+
+  <div class="modal" id="modal">
+    <button class="modal-close" id="modalClose" aria-label="Chiudi">×</button>
+    <img id="modalImg" src="" alt="">
+  </div>
+
+  <!-- Lista per il cameriere: la barra compare solo quando c'è qualcosa dentro -->
+  <button class="barra-lista" id="barraLista" type="button">
+    <span class="barra-info"><span id="barraConteggio"></span><b id="barraTotale"></b></span>
+    <span class="barra-cta">Mostra al cameriere ›</span>
+  </button>
+
+  <div class="foglio" id="lista" role="dialog" aria-modal="true" aria-labelledby="listaTitolo">
+    <div class="foglio-box">
+      <div class="foglio-top">
+        <h2 id="listaTitolo">La tua lista</h2>
+        <button class="foglio-chiudi" id="listaChiudi" aria-label="Chiudi">×</button>
+      </div>
+      <p class="foglio-avviso"><b>Non è un ordine.</b> Mostra questa lista al cameriere quando passa al tavolo.</p>
+      <div id="listaCorpo"></div>
+      <div class="foglio-totale"><span>Totale</span><b id="listaTotale"></b></div>
+      <button class="foglio-svuota" id="listaSvuota">Svuota lista</button>
+    </div>
+  </div>
+
+  <script src="/menu-config.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    // nomi brevi per la riga sotto il piatto; l'elenco completo resta in allergeni.html
+    const ALLERGENI = {
+      1: 'Glutine', 2: 'Crostacei', 3: 'Uova', 4: 'Pesce',
+      5: 'Arachidi', 6: 'Soia', 7: 'Latte', 8: 'Frutta a guscio',
+      9: 'Sedano', 10: 'Senape', 11: 'Sesamo', 12: 'Solfiti',
+      13: 'Lupini', 14: 'Molluschi',
+    };
+    const GIN_ORDER = ['STILE ORIENTALE', 'LONDON DRY & CLASSICI', 'MEDITERRANEI & ERBACEI', 'FRUTTATI & SPECIALI', 'ALTRI GIN'];
+    const VINI_ORDER = ['BOLLICINE', 'BIANCHI', 'ROSATI', 'ROSSI', 'ALTRI VINI'];
+    // Colore di ogni tipo di vino, per riconoscere subito il gruppo
+    const COLORI_GRUPPO = { 'BOLLICINE': '#e8cf7a', 'BIANCHI': '#f3e9b5', 'ROSATI': '#f29bb0', 'ROSSI': '#c0182f' };
+    // Ordine delle sezioni sul menu dei clienti (percorso della serata); l'admin tiene il suo ordine originale
+    const ORDINE_SEZIONI = {
+      Cucina: ['fuori-menu', 'hamburger', 'piade-panini', 'fritti', 'insalate', 'vegan', 'dolci-homemade', 'dolci-classici', 'salse'],
+      Drink: ['cocktail', 'analcolici', 'gin', 'vini', 'rum', 'whisky', 'tequila', 'amari', 'grappe', 'kaffetteria', 'bibite'],
+    };
+    // Una riga per scegliere lo stile senza leggere ogni gin
+    const GRUPPI_HINT = {
+      'STILE ORIENTALE': 'Agrumati e delicati: yuzu, tè verde, fiori di ciliegio',
+      'LONDON DRY & CLASSICI': 'Secchi e decisi, con il ginepro in primo piano',
+      'MEDITERRANEI & ERBACEI': 'Erbe aromatiche e note balsamiche',
+      'FRUTTATI & SPECIALI': 'Fruttati, floreali o speziati: per chi cerca qualcosa di diverso',
+    };
+    // Nomi delle sezioni sul menu (nel database e nell'admin restano quelli di sempre)
+    const ETICHETTE = { analcolici: 'Cocktail analcolici', tequila: 'Tequila & Mezcal' };
+    // "(45,1%)" nella descrizione → pillola accanto al nome
+    const RE_GRADI = /\s*\(\s*(\d+(?:[.,]\d+)?)\s*%\s*\)/;
+    // Vini: "Bottiglia €20 - Calice €5 | ..." in testa alla descrizione (anche "20€")
+    const RE_VINO = /^\s*Bottiglia\s*€?\s*(\d+(?:[.,]\d+)?)\s*€?\s*(?:-\s*Calice\s*€?\s*(\d+(?:[.,]\d+)?)\s*€?)?\s*\|\s*/i;
+    const ICON_BEER = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 11h1a3 3 0 0 1 0 6h-1"/><path d="M5 8h12v12a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1z"/><path d="M5 8a3 3 0 0 1 3-4 3 3 0 0 1 3-1 3 3 0 0 1 3 1 3 3 0 0 1 3 4"/></svg>';
+    const ICON_OROLOGIO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>';
+    // "(NON SI APPORTANO MODIFICHE ...)" scritto nella descrizione → etichetta "Senza modifiche"
+    const RE_NO_MODIFICHE = /\(?\s*non si apportano modifiche[^)]*\)?/i;
+    const ICON_SEARCH ='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>';
+
+    // ── Da confermare col locale ──
+    // Volumi dei bicchieri alla spina
+    const FORMATI_SPINA = { Piccola: '0,2 L', Media: '0,4 L' };
+    // Prima di quest'ora il menu si apre su Cucina (si pensa a mangiare), dopo su Birre
+    const ORA_BIRRE = 22;
+    // Orario della cucina mostrato nel menu (es. 'dalle 19:00 alle 23:30'); null = riga nascosta finché il locale non lo conferma
+    const ORARIO_CUCINA = null;
+
+    // null = non ancora caricato
+    const state = { spine: null, lattine: null, menu: null };
+    const TABS = ['birre', 'cucina', 'drink'];
+    const tabDiDefault = () => { const h = new Date().getHours(); return h >= ORA_BIRRE || h < 6 ? 'birre' : 'cucina'; };
+    let tab = TABS.includes(location.hash.slice(1)) ? location.hash.slice(1) : tabDiDefault();
+    const sub = { birre: 'spina', cucina: null, drink: null };
+    let query = '';
+
+    /* ── Utility ── */
+    const $ = id => document.getElementById(id);
+    function el(tag, cls, text) {
+      const e = document.createElement(tag);
+      if (cls) e.className = cls;
+      if (text != null) e.textContent = text;
+      return e;
+    }
+    const eur = v => '€' + Number(v).toFixed(2).replace('.', ',');
+    const abv = v => String(v).replace('.', ',') + '% vol';
+
+    // breve bagliore su una spina cambiata live
+    function flash(card) { card.classList.remove('flash'); void card.offsetWidth; card.classList.add('flash'); }
+
+
+    function thumb(url, alt) {
+      const box = el('div', 'thumb');
+      const fallback = () => { box.innerHTML = ICON_BEER; };
+      if (!url) { fallback(); return box; }
+      const img = el('img');
+      img.src = url; img.alt = alt; img.loading = 'lazy'; img.onerror = fallback;
+      box.append(img);
+      return box;
+    }
+
+    // "Birrificio · 4,5% vol" con il birrificio in maiuscolo come il resto della card
+    function beerMeta(cls, b) {
+      const p = el('p', cls);
+      p.append(el('span', 'brewery', b.birrificio), ' · ' + abv(b.gradazione_alcolica));
+      return p;
+    }
+
+    const nomeDiverso = b => b.tipologia && b.nome.trim().toLowerCase() !== b.tipologia.trim().toLowerCase();
+
+    function flags(parent, b) {
+      if (!b.gluten_free && !b.analcolico) return;
+      const row = el('div', 'flags');
+      if (b.gluten_free) row.append(el('span', 'flag flag-gf', 'Gluten free'));
+      if (b.analcolico) row.append(el('span', 'flag flag-na', 'Analcolico'));
+      parent.append(row);
+    }
+
+    function heading(label, count) {
+      const h = el('div', 'sec-head');
+      h.append(el('h2', 'sec-title', label));
+      if (count != null) h.append(el('span', 'sec-count', count));
+      return h;
+    }
+
+    function scrollToContent() {
+      const top = $('content').getBoundingClientRect().top + window.scrollY - $('nav').offsetHeight;
+      if (window.scrollY > top) window.scrollTo({ top });
+    }
+
+    /* ── Navigazione ── */
+    function setTab(t) {
+      tab = t;
+      history.replaceState(null, '', '#' + t);
+      render(true);
+      scrollToContent();
+    }
+    document.querySelectorAll('.tab').forEach(b => b.addEventListener('click', () => setTab(b.dataset.tab)));
+    window.addEventListener('hashchange', () => { const t = location.hash.slice(1); if (TABS.includes(t) && t !== tab) setTab(t); });
+
+    function renderPills(list, active, pick) {
+      const pills = $('pills');
+      pills.replaceChildren(...list.map(({ key, label }) => {
+        const b = el('button', 'pill', label);
+        b.setAttribute('aria-pressed', key === active);
+        b.addEventListener('click', () => { pick(key); render(true); scrollToContent(); });
+        return b;
+      }));
+      const act = pills.querySelector('[aria-pressed="true"]');
+      const box = $('pillsScroll');
+      if (act) box.scrollTo({ left: act.offsetLeft - (box.clientWidth - act.offsetWidth) / 2, behavior: 'smooth' });
+    }
+
+    function render(animate) {
+      document.querySelectorAll('.tab').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === tab));
+      const main = $('content');
+      const y = window.scrollY;
+      main.replaceChildren();
+      if (animate) { main.classList.remove('fade'); void main.offsetWidth; main.classList.add('fade'); }
+      if (tab === 'birre') renderBirre(main);
+      else renderMenu(main, tab === 'cucina' ? 'Cucina' : 'Drink');
+      // entrata a cascata leggera, solo cambiando sezione (non sugli aggiornamenti live)
+      if (animate) main.querySelectorAll('article').forEach((a, i) => { a.style.animationDelay = Math.min(i, 10) * 35 + 'ms'; });
+      // aggiornamento live: il cliente resta dov'era invece di saltare in alto
+      if (!animate) window.scrollTo(0, y);
+      aggiornaLista();
+    }
+
+    /* ── Birre ── */
+    function renderBirre(main) {
+      renderPills([{ key: 'spina', label: 'Alla spina' }, { key: 'lattina', label: 'In lattina' }], sub.birre, k => { sub.birre = k; });
+
+      if (sub.birre === 'spina') {
+        main.append(heading('Alla spina', 'Beer on tap'));
+        if (!state.spine) return main.append(el('p', 'empty', 'Caricamento…'));
+        const grid = el('div', 'tap-grid');
+        grid.append(...state.spine.map(tapCard));
+        main.append(grid);
+        return;
+      }
+
+      main.append(heading('In lattina'));
+      const search = el('label', 'search');
+      search.innerHTML = ICON_SEARCH;
+      const input = el('input');
+      input.type = 'search'; input.placeholder = 'Cerca per nome, birrificio o stile…'; input.value = query;
+      input.setAttribute('aria-label', 'Cerca birre in lattina');
+      input.addEventListener('input', () => { query = input.value; renderLattineList(); });
+      search.append(input);
+      const count = el('p', 'count'); count.id = 'canCount';
+      const list = el('div', 'can-list'); list.id = 'canList';
+      main.append(search, count, list);
+      renderLattineList();
+    }
+
+
+    function tapCard(s) {
+      const b = s.birra;
+      const card = el('article', b ? 'tap' : 'tap tap--empty');
+      card.dataset.n = s.numero_spina;
+      const media = el('div', 'tap-media');
+      media.append(thumb(b && b.immagine_url, b ? b.nome : ''), el('span', 'tap-num', s.numero_spina));
+      card.append(media);
+
+      const info = el('div', 'tap-info');
+      card.append(info);
+      if (!b) {
+        info.append(el('h3', 'tap-style', 'Non disponibile'), el('p', 'tap-meta', 'Spina ' + s.numero_spina));
+        return card;
+      }
+      info.append(el('h3', 'tap-style', b.tipologia || b.nome));
+      if (nomeDiverso(b)) info.append(el('p', 'tap-name', b.nome));
+      info.append(beerMeta('tap-meta', b));
+      flags(info, b);
+
+      const prices = el('div', 'tap-prices');
+      [['Piccola', b.prezzo_piccola], ['Media', b.prezzo_media]].forEach(([label, v]) => {
+        if (v == null) return;
+        const chip = el('div', 'price-chip');
+        const lbl = el('small', null, label + ' ');
+        lbl.append(el('span', 'volume', FORMATI_SPINA[label]));
+        chip.append(lbl, el('b', null, eur(v)));
+        prices.append(chip);
+      });
+      if (prices.children.length) card.append(prices);
+      return card;
+    }
+
+    function renderLattineList() {
+      const list = $('canList');
+      if (!list) return;
+      if (!state.lattine) return list.replaceChildren(el('p', 'empty', 'Caricamento…'));
+      const q = query.toLowerCase().trim();
+      const found = q
+        ? state.lattine.filter(b => [b.nome, b.birrificio, b.tipologia].some(v => v && v.toLowerCase().includes(q)))
+        : state.lattine;
+      $('canCount').textContent = found.length + (found.length === 1 ? ' birra' : ' birre');
+      list.replaceChildren(...(found.length
+        ? found.map(canRow)
+        : [el('p', 'empty', q ? 'Nessun risultato per "' + query.trim() + '"' : 'Nessuna birra disponibile')]));
+    }
+
+    function canRow(b) {
+      const row = el('article', 'can');
+      row.append(thumb(b.immagine_url, b.nome));
+      const info = el('div', 'can-info');
+      info.append(el('h3', 'can-style', b.tipologia || b.nome));
+      if (nomeDiverso(b)) info.append(el('p', 'can-name', b.nome));
+      info.append(beerMeta('can-meta', b));
+      flags(info, b);
+      row.append(info);
+      if (b.prezzo_unico != null) row.append(el('span', 'can-price', eur(b.prezzo_unico)));
+      return row;
+    }
+
+    /* ── Cucina / Drink ── */
+    function renderMenu(main, macro) {
+      if (!state.menu) {
+        renderPills([], null, () => {});
+        return main.append(el('p', 'empty', 'Caricamento…'));
+      }
+      const grouped = MenuConfig.groupItemsByDisplayCategory(state.menu.filter(i => i.macro_category === macro), macro);
+      const pos = k => { const i = ORDINE_SEZIONI[macro].indexOf(k); return i < 0 ? Infinity : i; };
+      const cats = MenuConfig.getOrderedSubCategories(macro, grouped)
+        .map(c => ({ ...c, label: ETICHETTE[c.key] || c.label }))
+        .sort((a, b) => pos(a.key) - pos(b.key));
+      if (!cats.some(c => c.key === sub[tab])) sub[tab] = cats.length ? cats[0].key : null;
+      const t = tab;
+      renderPills(cats, sub[t], k => { sub[t] = k; });
+      if (!cats.length) return main.append(el('p', 'empty', 'Nessun prodotto disponibile'));
+
+      const cat = cats.find(c => c.key === sub[t]);
+      if (macro === 'Cucina' && ORARIO_CUCINA) {
+        const orario = el('p', 'orario');
+        orario.innerHTML = ICON_OROLOGIO;
+        orario.append('Cucina aperta ' + ORARIO_CUCINA);
+        main.append(orario);
+      }
+      main.append(heading(cat.label));
+      const items = [...grouped.get(cat.key).items].sort((a, b) => (a.ordine ?? Infinity) - (b.ordine ?? Infinity));
+      const badgeVisibili = MenuConfig.visibleBadgeIds(items);
+
+      const gruppi = cat.key === 'gin' ? raggruppa(items, i => (i.tipologia || '').trim().toUpperCase() || 'ALTRI GIN', GIN_ORDER)
+        : cat.key === 'vini' ? raggruppa(items, tipoVino, VINI_ORDER)
+        : null;
+      if (!gruppi) {
+        items.forEach(i => main.append(itemRow(i, badgeVisibili.has(i.id), cat.key === 'salse')));
+        return;
+      }
+      if (gruppi.length > 1) {
+        const jump = el('div', 'jump');
+        gruppi.forEach(([titolo, lista], n) => {
+          const b = el('button', null, titolo);
+          b.append(el('span', null, lista.length));
+          if (COLORI_GRUPPO[titolo]) b.style.setProperty('--gc', COLORI_GRUPPO[titolo]);
+          b.addEventListener('click', () => $('gruppo-' + n).scrollIntoView({ behavior: 'smooth' }));
+          jump.append(b);
+        });
+        main.append(jump);
+      }
+      gruppi.forEach(([titolo, lista], n) => {
+        const h = el('h3', 'sub-head', titolo);
+        h.append(el('span', null, lista.length + (cat.key === 'vini' ? (lista.length === 1 ? ' vino' : ' vini') : ' gin')));
+        if (COLORI_GRUPPO[titolo]) h.style.setProperty('--gc', COLORI_GRUPPO[titolo]);
+        h.id = 'gruppo-' + n;
+        main.append(h);
+        if (GRUPPI_HINT[titolo]) main.append(el('p', 'sub-hint', GRUPPI_HINT[titolo]));
+        lista.forEach(i => main.append(itemRow(i, badgeVisibili.has(i.id), false)));
+      });
+    }
+
+    // [[titolo, prodotti], ...] nell'ordine dato; i gruppi sconosciuti in fondo in ordine alfabetico
+    function raggruppa(items, chiave, ordine) {
+      const g = new Map();
+      items.forEach(i => { const k = chiave(i); if (!g.has(k)) g.set(k, []); g.get(k).push(i); });
+      const rank = k => (ordine.includes(k) ? ordine.indexOf(k) : ordine.length);
+      return [...g].sort(([a], [b]) => rank(a) - rank(b) || a.localeCompare(b));
+    }
+
+    // Tipo di vino dal nome e dalla descrizione (le bollicine prima: un Satèn è anche "Bianco")
+    function tipoVino(i) {
+      const t = (i.name + ' ' + (i.description || '')).toLowerCase();
+      if (/prosecco|spumante|champagne|trentodoc|franciacorta|brut|sat[eè]n|metodo classico/.test(t)) return 'BOLLICINE';
+      if (/rosat|ros[éè]/.test(t)) return 'ROSATI';
+      if (/\brosso\b/.test(t)) return 'ROSSI';
+      if (/bianc/.test(t)) return 'BIANCHI';
+      return 'ALTRI VINI';
+    }
+
+    function prezziVino(d) {
+      const m = (d || '').match(RE_VINO);
+      if (!m) return null;
+      const n = x => parseFloat(x.replace(',', '.'));
+      return { calice: m[2] ? n(m[2]) : null, bottiglia: n(m[1]), resto: d.slice(m[0].length) };
+    }
+
+
+    const BADGE_TESTO = { 'CONSIGLIATO': 'Consigliato dallo staff' };
+
+    function itemRow(item, showBadge, hidePrice) {
+      const row = el('article', 'item');
+      const badge = showBadge && MenuConfig.getBadgeMeta(item.badge);
+      if (badge) row.classList.add(badge.rowClass);
+      const badgeName = MenuConfig.normalizeBadge(item.badge);
+      const badgeEl = badge && el('span', 'item-badge ' + badge.className, BADGE_TESTO[badgeName] || badgeName);
+      const vino = prezziVino(item.description);
+      let testo = vino ? vino.resto : (item.description || '');
+      const gradi = testo.match(RE_GRADI);
+      if (gradi) testo = testo.replace(RE_GRADI, '');
+      const noModifiche = RE_NO_MODIFICHE.test(testo);
+      if (noModifiche) testo = testo.replace(RE_NO_MODIFICHE, '');
+      const price = !hidePrice && !vino && el('span', 'item-price', eur(item.price));
+
+      const info = el('div', 'item-info');
+      const head = el('div', 'item-head');
+      const name = el('h3', 'item-name', item.name);
+      if (gradi) name.append(el('span', 'abv-pill', gradi[1].replace('.', ',') + '%'));
+      head.append(name);
+      info.append(head);
+
+      // i piatti sono liste di ingredienti (virgole → trattini), i drink frasi vere: restano come sono
+      const desc = item.macro_category === 'Drink' ? testo.trim() : MenuConfig.formatDescription(testo);
+      if (desc) info.append(descrizione(desc, item.macro_category === 'Cucina'));
+
+      // vini: si tocca direttamente "Calice" o "Bottiglia" per metterli in lista
+      if (vino) {
+        const prices = el('div', 'wine-prices');
+        vociDi(item).forEach(v => prices.append(bottoneLista('price-chip', v, el('small', null, v.formato), el('b', null, eur(v.prezzo)))));
+        info.append(prices);
+      }
+
+      if (Array.isArray(item.allergeni) && item.allergeni.length) {
+        const all = el('p', 'item-all');
+        all.append(el('span', 'item-all-label', 'Allergeni'), [...item.allergeni].sort((a, b) => a - b).map(n => ALLERGENI[n] || n).join(' · '));
+        info.append(all);
+      }
+      row.append(info);
+
+      const tags = [badgeEl, noModifiche && el('span', 'item-tag', 'Senza modifiche')].filter(Boolean);
+      // prezzo sempre a destra del nome, poi il + per la lista (le salse no: il loro prezzo resta nascosto)
+      if (price) head.append(price, bottoneLista('add', vociDi(item)[0]));
+      if (!item.immagine_url) { info.prepend(...tags); return row; }
+
+      // con foto: banner in cima con le etichette nell'angolo e nome + prezzo appoggiati sulla sfumatura
+      const photo = el('button', 'item-photo');
+      photo.setAttribute('aria-label', 'Ingrandisci foto: ' + item.name);
+      const img = el('img');
+      img.src = item.immagine_url; img.alt = ''; img.loading = 'lazy';
+      photo.append(img);
+      photo.addEventListener('click', () => openModal(item.immagine_url, item.name));
+      const angolo = el('div', 'banner-tags');
+      angolo.append(...tags);
+      const banner = el('div', 'banner');
+      banner.append(photo, angolo, head);
+      info.prepend(banner);
+      // se la foto non carica il prodotto torna come quelli senza foto
+      img.onerror = () => { info.prepend(...tags, head); banner.remove(); };
+      return row;
+    }
+
+    // "salse a scelta" porta alla sezione Salse: il cliente le guarda senza doverle chiedere al cameriere
+    function descrizione(testo, cucina) {
+      const p = el('p', 'item-desc');
+      const m = cucina && testo.match(/salse? a scelta/i);
+      if (!m) { p.textContent = testo; return p; }
+      const link = el('button', 'link-salse', m[0]);
+      link.addEventListener('click', () => { sub.cucina = 'salse'; render(true); scrollToContent(); });
+      p.append(testo.slice(0, m.index), link, testo.slice(m.index + m[0].length));
+      return p;
+    }
+
+    /* ── Lista da mostrare al cameriere ──
+       Non è un ordine e non va al server: resta solo su questo telefono. */
+    const LISTA_KEY = 'blackout-lista';
+    const LISTA_SCADE = 6 * 3600e3;   // la lista di un'altra sera non deve ricomparire
+    let lista = new Map();             // voce → quantità, in ordine di aggiunta
+    try {
+      const s = JSON.parse(localStorage.getItem(LISTA_KEY));
+      if (s && Date.now() - s.t < LISTA_SCADE) lista = new Map(s.voci);
+    } catch (e) { /* storage bloccato o dati rovinati: si parte da una lista vuota */ }
+    function salvaLista() {
+      try { localStorage.setItem(LISTA_KEY, JSON.stringify({ t: Date.now(), voci: [...lista] })); } catch (e) { /* resta solo in memoria */ }
+    }
+
+    // cosa si può mettere in lista: i vini al calice e in bottiglia, il resto a prezzo unico
+    function vociDi(item) {
+      const v = prezziVino(item.description);
+      if (!v) return [{ key: String(item.id), nome: item.name, prezzo: item.price }];
+      return [['calice', v.calice], ['bottiglia', v.bottiglia]].filter(([, p]) => p != null)
+        .map(([formato, p]) => ({ key: item.id + ':' + formato, nome: item.name + ' · ' + formato, prezzo: p, formato }));
+    }
+    // le voci salvate con nome e prezzo di adesso; un prodotto tolto dal menu sparisce anche dalla lista
+    function vociLista() {
+      const tutte = new Map();
+      (state.menu || []).forEach(i => vociDi(i).forEach(v => tutte.set(v.key, { ...v, cucina: i.macro_category === 'Cucina' })));
+      return [...lista].filter(([k]) => tutte.has(k)).map(([k, n]) => ({ ...tutte.get(k), n }));
+    }
+    // conti in centesimi: 1,10 × 3 deve fare 3,30 e non 3,3000000000000003
+    const cent = v => Math.round(Number(v) * 100);
+    const totaleCent = voci => voci.reduce((s, v) => s + cent(v.prezzo) * v.n, 0);
+    console.assert(totaleCent([{ prezzo: 1.1, n: 3 }, { prezzo: 0.5, n: 1 }]) === 380, 'totale lista sbagliato');
+
+    function cambia(key, d) {
+      const n = (lista.get(key) || 0) + d;
+      if (n > 0) lista.set(key, n); else lista.delete(key);
+      salvaLista();
+      aggiornaLista();
+    }
+
+    function bottoneLista(cls, voce, ...contenuto) {
+      const b = el('button', cls);
+      b.dataset.voce = voce.key;
+      b.dataset.nome = voce.nome;
+      b.append(...contenuto, el('span', 'add-n'));
+      b.addEventListener('click', () => cambia(voce.key, 1));
+      statoBottone(b);
+      return b;
+    }
+    function statoBottone(b) {
+      const n = lista.get(b.dataset.voce) || 0;
+      b.classList.toggle('in-lista', n > 0);
+      b.querySelector('.add-n').textContent = n || '+';
+      b.setAttribute('aria-label', 'Aggiungi alla lista: ' + b.dataset.nome + (n ? ', ' + n + ' in lista' : ''));
+    }
+
+    function aggiornaLista() {
+      const voci = vociLista();
+      const pezzi = voci.reduce((s, v) => s + v.n, 0);
+      const totale = eur(totaleCent(voci) / 100);
+      document.body.classList.toggle('con-lista', pezzi > 0);
+      $('barraConteggio').textContent = pezzi + (pezzi === 1 ? ' prodotto' : ' prodotti');
+      $('barraTotale').textContent = totale;
+      document.querySelectorAll('[data-voce]').forEach(statoBottone);
+      if (!$('lista').classList.contains('open')) return;
+      if (!pezzi) return chiudiLista();
+      // ridisegnando il foglio il fuoco tornerebbe in cima: lo rimettiamo sul tasto appena usato
+      const fuoco = document.activeElement && document.activeElement.dataset.passo;
+      renderFoglio(voci, totale);
+      const tasto = fuoco && $('listaCorpo').querySelector('[data-passo="' + CSS.escape(fuoco) + '"]');
+      if (tasto) tasto.focus();
+    }
+
+    function renderFoglio(voci, totale) {
+      const corpo = $('listaCorpo');
+      corpo.replaceChildren();
+      [['Cucina', true], ['Da bere', false]].forEach(([titolo, cucina]) => {
+        const gruppo = voci.filter(v => v.cucina === cucina);
+        if (!gruppo.length) return;
+        corpo.append(el('h3', 'lista-gruppo', titolo));
+        gruppo.forEach(v => {
+          const riga = el('div', 'lista-riga');
+          const nome = el('div', 'lista-nome');
+          nome.append(el('b', null, v.nome), el('span', null, eur(cent(v.prezzo) * v.n / 100)));
+          riga.append(el('span', 'lista-n', v.n + '×'), nome);
+          [['−', -1, 'Togli uno: '], ['+', 1, 'Aggiungi uno: ']].forEach(([segno, d, label]) => {
+            const b = el('button', 'passo', segno);
+            b.dataset.passo = v.key + '|' + d;
+            b.setAttribute('aria-label', label + v.nome);
+            b.addEventListener('click', () => cambia(v.key, d));
+            riga.append(b);
+          });
+          corpo.append(riga);
+        });
+      });
+      $('listaTotale').textContent = totale;
+    }
+
+    // con il foglio aperto il resto della pagina non si raggiunge (né col dito né con la tastiera)
+    function bloccaPagina(si) {
+      document.body.classList.toggle('foglio-aperto', si);
+      document.querySelectorAll('body > :not(#lista)').forEach(n => { n.inert = si; });
+    }
+    function apriLista() {
+      $('lista').classList.add('open');
+      bloccaPagina(true);
+      aggiornaLista();
+      $('listaChiudi').focus();
+    }
+    function chiudiLista() {
+      if (!$('lista').classList.contains('open')) return;
+      $('lista').classList.remove('open');
+      bloccaPagina(false);
+      $('barraLista').focus();
+    }
+    $('barraLista').addEventListener('click', apriLista);
+    $('listaChiudi').addEventListener('click', chiudiLista);
+    $('lista').addEventListener('click', e => { if (e.target === $('lista')) chiudiLista(); });
+    $('listaSvuota').addEventListener('click', () => { lista.clear(); salvaLista(); aggiornaLista(); });
+
+    /* ── Modal foto ── */
+    function openModal(src, alt) {
+      $('modalImg').src = src; $('modalImg').alt = alt;
+      $('modal').classList.add('open');
+      $('modalClose').focus();
+    }
+    function closeModal() { $('modal').classList.remove('open'); }
+    $('modal').addEventListener('click', e => { if (e.target !== $('modalImg')) closeModal(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeModal(); chiudiLista(); } });
+
+    /* ── Live (Socket.io) ── */
+    const socket = io();
+    socket.on('menu_spine_aggiornato', d => {
+      const prima = new Map((state.spine || []).map(s => [s.numero_spina, JSON.stringify(s.birra)]));
+      state.spine = d || [];
+      if (tab !== 'birre' || sub.birre !== 'spina') return;
+      render();
+      // le spine appena cambiate si illuminano un attimo
+      if (prima.size) state.spine.forEach(s => {
+        if (prima.get(s.numero_spina) !== JSON.stringify(s.birra)) {
+          const card = document.querySelector('.tap[data-n="' + s.numero_spina + '"]');
+          if (card) flash(card);
+        }
+      });
+    });
+    socket.on('menu_lattine_aggiornato', d => { state.lattine = d || []; if (tab === 'birre' && sub.birre === 'lattina') renderLattineList(); });
+    socket.on('menu_aggiornato', d => { state.menu = d || []; if (tab !== 'birre') render(); else aggiornaLista(); });
+
+    /* ── Primo caricamento (se il socket arriva prima, non sovrascrive) ── */
+    [['spine', '/api/spine'], ['lattine', '/api/lattine'], ['menu', '/api/menu']].forEach(([key, url]) => {
+      fetch(url)
+        .then(r => r.json())
+        .then(d => { if (d.success && !state[key]) { state[key] = d.data; render(); } })
+        .catch(e => console.error('Init fetch error', url, e));
+    });
+
+    render();
+  </script>
+</body>
+
+</html>
