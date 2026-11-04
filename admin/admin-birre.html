@@ -41,6 +41,8 @@
     .topbar-logo { font-family:'Oswald',sans-serif; font-size:1.25rem; letter-spacing:3px; color:var(--primary); text-transform:uppercase; }
     .btn-logout { padding:7px 16px; background:var(--danger-bg); color:var(--danger); border:1px solid rgba(220,38,38,.2); border-radius:6px; font-size:.82rem; font-weight:600; cursor:pointer; }
     .btn-logout:hover { background:#fca5a5; }
+    .btn-switch { background:var(--surface); color:var(--primary); border-color:var(--border); margin-right:6px; }
+    .btn-switch:hover { background:var(--border); }
     .main { max-width:1280px; margin:0 auto; padding:28px 20px 60px; }
     /* SEC CARD */
     .sc { background:var(--surface); border-radius:var(--r); box-shadow:var(--sh-sm); margin-bottom:32px; overflow:hidden; }
@@ -158,7 +160,10 @@
 <div id="dash" class="dash hidden">
   <nav class="topbar">
     <span class="topbar-logo">BlackOut Admin</span>
-    <button class="btn-logout" onclick="logout()">Esci</button>
+    <div>
+      <button class="btn-logout btn-switch" onclick="location.href = location.pathname.replace(/\/birre\/?$/, '')">🍔 Cibo &amp; Drink</button>
+      <button class="btn-logout" onclick="logout()">Esci</button>
+    </div>
   </nav>
   <div class="main">
 
