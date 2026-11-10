@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BlackOut Admin</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap');
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --bg:#f4f4f6; --surface:#fff; --border:#e2e2e8;
+      --text:#1a1a2e; --muted:#6b6b80;
+      --primary:#cc1133; --primary-dk:#a00d28;
+      --success:#16a34a; --success-bg:#dcfce7;
+      --danger:#dc2626; --danger-bg:#fee2e2;
+      --warning:#d97706; --warn-bg:#fef3c7;
+      --gold:#c9a84c;
+      --sh-sm:0 1px 3px rgba(0,0,0,.08);
+      --sh-md:0 4px 12px rgba(0,0,0,.1);
+      --sh-lg:0 8px 24px rgba(0,0,0,.12);
+      --r:10px;
+    }
+    body { font-family:'Inter',sans-serif; background:var(--bg); color:var(--text); line-height:1.6; }
+    .hidden { display:none !important; }
+    /* AUTH */
+    .auth-wrap { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px; background:radial-gradient(ellipse at 50% 0%,rgba(204,17,51,.06) 0%,transparent 70%),var(--bg); }
+    .auth-box { width:100%; max-width:380px; background:var(--surface); border-radius:16px; padding:40px 36px; box-shadow:var(--sh-lg); }
+    .auth-logo { text-align:center; margin-bottom:28px; }
+    .auth-logo h1 { font-family:'Oswald',sans-serif; font-size:2rem; letter-spacing:4px; color:var(--primary); text-transform:uppercase; }
+    .auth-logo p { font-size:.8rem; color:var(--muted); letter-spacing:2px; text-transform:uppercase; margin-top:4px; }
+    .fg { margin-bottom:18px; }
+    .fg label { display:block; font-size:.85rem; font-weight:500; margin-bottom:7px; }
+    .fg input { width:100%; padding:11px 14px; border:1.5px solid var(--border); border-radius:8px; font-size:.95rem; background:var(--bg); transition:border-color .2s; }
+    .fg input:focus { outline:none; border-color:var(--primary); }
+    .btn-login { width:100%; padding:12px; background:var(--primary); color:#fff; border:none; border-radius:8px; font-size:.95rem; font-weight:600; cursor:pointer; transition:background .2s; }
+    .btn-login:hover { background:var(--primary-dk); }
+    .auth-err { color:var(--danger); font-size:.85rem; margin-top:10px; text-align:center; }
+    /* TOPBAR */
+    .dash { min-height:100vh; }
+    .topbar { background:var(--surface); border-bottom:2px solid var(--border); padding:0 24px; height:58px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:50; box-shadow:var(--sh-sm); }
+    .topbar-logo { font-family:'Oswald',sans-serif; font-size:1.25rem; letter-spacing:3px; color:var(--primary); text-transform:uppercase; }
+    .btn-logout { padding:7px 16px; background:var(--danger-bg); color:var(--danger); border:1px solid rgba(220,38,38,.2); border-radius:6px; font-size:.82rem; font-weight:600; cursor:pointer; }
+    .btn-logout:hover { background:#fca5a5; }
+    .btn-switch { background:var(--surface); color:var(--primary); border-color:var(--border); margin-right:6px; }
+    .btn-switch:hover { background:var(--border); }
+    .main { max-width:1280px; margin:0 auto; padding:28px 20px 60px; }
+    /* SEC CARD */
+    .sc { background:var(--surface); border-radius:var(--r); box-shadow:var(--sh-sm); margin-bottom:32px; overflow:hidden; }
+    .sc-hdr { padding:18px 24px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; }
+    .sc-title { font-family:'Oswald',sans-serif; font-size:1.1rem; letter-spacing:2px; text-transform:uppercase; }
+    .sc-sub { font-size:.82rem; color:var(--muted); }
+    .sc-body { padding:24px; }
+    /* SPINE */
+    .spine-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:16px; }
+    .tap-card { border:1.5px solid var(--border); border-radius:var(--r); padding:18px; transition:box-shadow .2s,border-color .2s; }
+    .tap-card:hover { box-shadow:var(--sh-md); border-color:rgba(204,17,51,.3); }
+    .tap-hdr { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; padding-bottom:12px; border-bottom:1px solid var(--border); }
+    .tap-num { font-family:'Oswald',sans-serif; font-size:1rem; color:var(--primary); letter-spacing:1px; text-transform:uppercase; }
+    .badge { padding:3px 10px; border-radius:20px; font-size:.75rem; font-weight:600; }
+    .ba { background:var(--success-bg); color:var(--success); }
+    .be { background:var(--warn-bg); color:var(--warning); }
+    .tap-cur { padding:10px 12px; background:var(--bg); border-radius:6px; margin-bottom:14px; }
+    .tap-cur-name { font-weight:600; font-size:.9rem; }
+    .tap-cur-meta { font-size:.8rem; color:var(--muted); margin-top:2px; }
+    .tap-empty { color:var(--muted); font-style:italic; font-size:.85rem; text-align:center; padding:12px 0; margin-bottom:14px; }
+    /* SEARCH */
+    .sw { position:relative; margin-bottom:10px; }
+    .sw .ico { position:absolute; left:10px; top:50%; transform:translateY(-50%); font-size:.85rem; pointer-events:none; }
+    .sw input { width:100%; padding:9px 12px 9px 32px; border:1.5px solid var(--border); border-radius:7px; font-size:.9rem; background:var(--bg); font-family:'Inter',sans-serif; transition:border-color .2s; }
+    .sw input:focus { outline:none; border-color:var(--primary); }
+    .sugg { display:none; position:absolute; top:calc(100% + 4px); left:0; right:0; background:var(--surface); border:1.5px solid var(--border); border-radius:8px; box-shadow:var(--sh-md); z-index:100; max-height:220px; overflow-y:auto; }
+    .si { padding:10px 14px; cursor:pointer; display:flex; flex-direction:column; gap:2px; transition:background .15s; }
+    .si:hover { background:var(--bg); }
+    .si strong { font-size:.9rem; }
+    .si span { font-size:.75rem; color:var(--muted); }
+    select { width:100%; padding:9px 12px; border:1.5px solid var(--border); border-radius:7px; font-size:.9rem; font-family:'Inter',sans-serif; background:var(--surface); color:var(--text); transition:border-color .2s; }
+    select:focus { outline:none; border-color:var(--primary); }
+    .beer-cnt { font-size:.78rem; color:var(--muted); margin-top:5px; }
+    .btn-row { display:flex; gap:8px; margin-top:12px; }
+    .btn { flex:1; padding:9px 14px; border:none; border-radius:7px; font-size:.85rem; font-weight:600; cursor:pointer; transition:opacity .2s,transform .1s; }
+    .btn:active { transform:scale(.97); }
+    .btn-p { background:var(--primary); color:#fff; }
+    .btn-p:hover { background:var(--primary-dk); }
+    .btn-g { background:var(--border); color:var(--muted); }
+    .btn-g:hover { background:#d0d0d8; }
+    .btn-ok { background:var(--success); color:#fff; }
+    .btn-ok:hover { opacity:.9; }
+    /* LATTINE */
+    .lat-list { display:flex; flex-direction:column; gap:10px; }
+    .lat-card { display:flex; align-items:center; gap:12px; padding:14px 18px; border:1.5px solid var(--border); border-left:4px solid var(--border); border-radius:var(--r); transition:border-color .2s,box-shadow .2s; flex-wrap:wrap; }
+    .lat-card:hover { box-shadow:var(--sh-md); }
+    .lat-card.disp { border-left-color:var(--success); }
+    .lat-card.esau { border-left-color:#d1d5db; opacity:.8; }
+    .lat-info { flex:1; min-width:160px; }
+    .lat-nome { font-weight:600; font-size:.95rem; }
+    .lat-meta { font-size:.8rem; color:var(--muted); margin-top:2px; }
+    .lat-img { display:flex; align-items:center; gap:6px; }
+    .lat-img input { width:200px; padding:6px 10px; border:1.5px solid var(--border); border-radius:6px; font-size:.78rem; font-family:'Inter',sans-serif; background:var(--bg); }
+    .lat-img input:focus { outline:none; border-color:var(--primary); }
+    .btn-img { padding:6px 12px; background:rgba(201,168,76,.15); color:var(--gold); border:1px solid rgba(201,168,76,.35); border-radius:6px; font-size:.75rem; font-weight:600; cursor:pointer; white-space:nowrap; }
+    .btn-img:hover { background:rgba(201,168,76,.28); }
+    .tog { padding:8px 18px; border:none; border-radius:20px; font-size:.82rem; font-weight:700; cursor:pointer; white-space:nowrap; transition:transform .1s; }
+    .tog:active { transform:scale(.95); }
+    .tog.on { background:var(--success-bg); color:var(--success); border:1px solid rgba(22,163,74,.25); }
+    .tog.off { background:var(--danger-bg); color:var(--danger); border:1px solid rgba(220,38,38,.2); }
+    /* CATALOGO CRUD */
+    .crud-form { background:var(--bg); border:1.5px solid var(--border); border-radius:var(--r); padding:20px; margin-bottom:24px; }
+    .crud-form h3 { font-family:'Oswald',sans-serif; font-size:.9rem; letter-spacing:2px; text-transform:uppercase; margin-bottom:16px; }
+    .fg2 { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:12px; }
+    .fg2 input,.fg2 select { width:100%; padding:9px 12px; border:1.5px solid var(--border); border-radius:7px; font-size:.88rem; font-family:'Inter',sans-serif; background:var(--surface); color:var(--text); transition:border-color .2s; }
+    .fg2 input:focus,.fg2 select:focus { outline:none; border-color:var(--primary); }
+    .fg2 .fr { grid-column:1/-1; }
+    .chks { display:flex; gap:20px; align-items:center; flex-wrap:wrap; margin-top:12px; }
+    .chks label { display:flex; align-items:center; gap:6px; font-size:.85rem; cursor:pointer; }
+    .chks input[type=checkbox] { width:16px; height:16px; cursor:pointer; }
+    .form-acts { display:flex; gap:8px; margin-top:14px; }
+    .form-acts .btn { flex:none; padding:9px 22px; }
+    .btn-ed { padding:6px 12px; background:rgba(201,168,76,.12); color:var(--gold); border:1px solid rgba(201,168,76,.3); border-radius:6px; font-size:.78rem; font-weight:600; cursor:pointer; white-space:nowrap; }
+    .btn-ed:hover { background:rgba(201,168,76,.22); }
+    .btn-del { padding:6px 12px; background:var(--danger-bg); color:var(--danger); border:1px solid rgba(220,38,38,.2); border-radius:6px; font-size:.78rem; font-weight:600; cursor:pointer; white-space:nowrap; }
+    .btn-del:hover { background:#fca5a5; }
+    .cat-filters { display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap; align-items:center; }
+    .cat-filters input { flex:1; min-width:200px; padding:8px 12px; border:1.5px solid var(--border); border-radius:7px; font-size:.88rem; font-family:'Inter',sans-serif; background:var(--surface); }
+    .cat-filters input:focus { outline:none; border-color:var(--primary); }
+    .fpill { padding:6px 14px; border:1.5px solid var(--border); border-radius:20px; font-size:.78rem; font-weight:600; cursor:pointer; background:transparent; color:var(--muted); transition:all .15s; white-space:nowrap; }
+    .fpill.active { background:var(--primary); border-color:var(--primary); color:#fff; }
+    .cat-cnt { font-size:.78rem; color:var(--muted); }
+    .cat-list { display:flex; flex-direction:column; gap:8px; }
+    .br { display:flex; align-items:center; gap:10px; padding:12px 16px; border:1.5px solid var(--border); border-left:4px solid var(--border); border-radius:var(--r); transition:box-shadow .15s; flex-wrap:wrap; }
+    .br:hover { box-shadow:var(--sh-md); }
+    .br.ok { border-left-color:var(--success); }
+    .br.no { border-left-color:#d1d5db; opacity:.75; }
+    .br-info { flex:1; min-width:180px; }
+    .br-nome { font-weight:600; font-size:.92rem; }
+    .br-meta { font-size:.78rem; color:var(--muted); margin-top:2px; }
+    .br-acts { display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
+    /* NOTIFY */
+    .notif { position:fixed; top:20px; right:20px; padding:14px 22px; border-radius:8px; font-size:.9rem; font-weight:500; box-shadow:var(--sh-lg); z-index:9999; animation:sli .25s ease; max-width:320px; }
+    @keyframes sli { from{transform:translateX(120%);opacity:0} to{transform:none;opacity:1} }
+    .n-ok  { background:var(--success-bg); color:var(--success); border:1px solid rgba(22,163,74,.3); }
+    .n-err { background:var(--danger-bg);  color:var(--danger);  border:1px solid rgba(220,38,38,.25); }
+    @media(max-width:768px){ .spine-grid{grid-template-columns:1fr} .lat-img{display:none} .main{padding:16px 14px 48px} }
+  </style>
+</head>
+<body>
+
+<!-- AUTH -->
+<div id="authWrap" class="auth-wrap">
+  <div class="auth-box">
+    <div class="auth-logo"><h1>BlackOut</h1><p>Pannello Admin</p></div>
+    <form id="loginForm">
+      <div class="fg"><label>Password</label><input type="password" id="pwInput" placeholder="Inserisci la password" required autofocus></div>
+      <button type="submit" class="btn-login">Accedi</button>
+      <div id="authErr" class="auth-err hidden"></div>
+    </form>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dash" class="dash hidden">
+  <nav class="topbar">
+    <span class="topbar-logo">BlackOut Admin</span>
+    <div>
+      <button class="btn-logout btn-switch" onclick="location.href = location.pathname.replace(/\/birre\/?$/, '')">🍔 Cibo &amp; Drink</button>
+      <button class="btn-logout" onclick="logout()">Esci</button>
+    </div>
+  </nav>
+  <div class="main">
+
+    <!-- SPINE -->
+    <div class="sc">
+      <div class="sc-hdr">
+        <span class="sc-title">🍺 Gestione Spine (Tap 1-8)</span>
+        <span class="sc-sub" id="spineSub"></span>
+      </div>
+      <div class="sc-body"><div class="spine-grid" id="spineGrid"></div></div>
+    </div>
+
+    <!-- LATTINE -->
+    <div class="sc">
+      <div class="sc-hdr">
+        <span class="sc-title">🥫 Gestione Frigo Lattine</span>
+        <span class="sc-sub" id="latSub"></span>
+      </div>
+      <div class="sc-body"><div class="lat-list" id="latGrid"></div></div>
+    </div>
+
+    <!-- CATALOGO CRUD -->
+    <div class="sc">
+      <div class="sc-hdr">
+        <span class="sc-title">📦 Gestione Catalogo Birre</span>
+        <span class="sc-sub" id="catSub"></span>
+      </div>
+      <div class="sc-body">
+
+        <!-- FORM -->
+        <div class="crud-form" id="beerForm">
+          <h3 id="formTitle">Aggiungi Nuova Birra</h3>
+          <input type="hidden" id="editId">
+          <div class="fg2">
+            <input type="text"   id="fNome"   placeholder="Nome *">
+            <input type="text"   id="fBirr"   placeholder="Birrificio *">
+            <input type="text"   id="fTipo"   placeholder="Tipologia (es. IPA)">
+            <input type="number" id="fGrad"   placeholder="Gradazione %" step="0.1" min="0">
+            <select id="fFmt"><option value="spina">Alla Spina</option><option value="lattina">Lattina / Bottiglia</option></select>
+            <input type="number" id="fPicco"  placeholder="Prezzo piccola (spina)" step="0.1" min="0">
+            <input type="number" id="fMedia"  placeholder="Prezzo media (spina)"   step="0.1" min="0">
+            <input type="number" id="fUnico"  placeholder="Prezzo unico (lattina)" step="0.1" min="0">
+            <input type="text"   id="fImg"    placeholder="URL immagine (/images/nome.png)" class="fr">
+          </div>
+          <div class="chks">
+            <label><input type="checkbox" id="fGF"> Gluten Free</label>
+            <label><input type="checkbox" id="fAnc"> Analcolico</label>
+            <label><input type="checkbox" id="fDisp" checked> Disponibile</label>
+          </div>
+          <div class="form-acts">
+            <button class="btn btn-ok" onclick="salvaBirra()">Salva</button>
+            <button class="btn btn-g"  onclick="resetForm()">Annulla</button>
+          </div>
+        </div>
+
+        <!-- FILTRI + LISTA -->
+        <div class="cat-filters">
+          <input type="text" id="catSearch" placeholder="Cerca birra..." oninput="renderCatalogo()">
+          <button class="fpill active" onclick="setFmt('tutti',this)">Tutte</button>
+          <button class="fpill"        onclick="setFmt('spina',this)">Spine</button>
+          <button class="fpill"        onclick="setFmt('lattina',this)">Lattine</button>
+          <span class="cat-cnt" id="catCnt"></span>
+        </div>
+        <div class="cat-list" id="catList"></div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  let pw = null, catalogo = [], spineAttive = [], fmtF = 'tutti';
+
+  const authWrap = document.getElementById('authWrap');
+  const dash     = document.getElementById('dash');
+  const authErr  = document.getElementById('authErr');
+
+  /* LOGIN */
+  document.getElementById('loginForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const p = document.getElementById('pwInput').value.trim();
+    authErr.classList.add('hidden');
+    try {
+      const r = await fetch('/api/admin/catalogo', { headers: { 'X-Admin-Password': p } });
+      const d = await r.json();
+      if (!d.success) { authErr.textContent = 'Password non valida'; authErr.classList.remove('hidden'); return; }
+      pw = p; catalogo = d.data;
+      authWrap.classList.add('hidden'); dash.classList.remove('hidden');
+      await caricaSpine();
+      renderLattine();
+      renderCatalogo();
+      notify('Accesso effettuato', 'ok');
+    } catch { authErr.textContent = 'Errore di connessione'; authErr.classList.remove('hidden'); }
+  });
+
+  function logout() {
+    pw = null; catalogo = []; spineAttive = [];
+    dash.classList.add('hidden'); authWrap.classList.remove('hidden');
+    document.getElementById('pwInput').value = '';
+  }
+
+  /* ── SPINE ── */
+  async function caricaSpine() {
+    const r = await fetch('/api/spine');
+    const d = await r.json();
+    if (d.success) { spineAttive = d.data; renderSpine(); }
+  }
+
+  function soloSpina() { return catalogo.filter(b => b.formato === 'spina'); }
+
+  function renderSpine() {
+    const grid = document.getElementById('spineGrid');
+    document.getElementById('spineSub').textContent = spineAttive.filter(s => s.birra).length + '/8 spine attive';
+    grid.innerHTML = '';
+    spineAttive.forEach(spina => {
+      const has = spina.birra !== null;
+      const card = document.createElement('div'); card.className = 'tap-card';
+      const hdr = document.createElement('div'); hdr.className = 'tap-hdr';
+      hdr.innerHTML = '<span class="tap-num">Spina ' + spina.numero_spina + '</span><span class="badge ' + (has ? 'ba' : 'be') + '">' + (has ? 'Attiva' : 'Vuota') + '</span>';
+      card.appendChild(hdr);
+      const cur = document.createElement('div');
+      if (has) {
+        cur.className = 'tap-cur';
+        cur.innerHTML = '<div class="tap-cur-name">' + spina.birra.nome + '</div><div class="tap-cur-meta">' + spina.birra.birrificio + ' · ' + spina.birra.gradazione_alcolica + '% · €' + spina.birra.prezzo_piccola + '/' + spina.birra.prezzo_media + '</div>';
+      } else { cur.className = 'tap-empty'; cur.textContent = 'Nessuna birra attaccata'; }
+      card.appendChild(cur);
+      const sw = document.createElement('div'); sw.className = 'sw';
+      const ico = document.createElement('span'); ico.className = 'ico'; ico.textContent = '🔍';
+      const inp = document.createElement('input'); inp.type = 'text'; inp.placeholder = 'Cerca birra o birrificio...';
+      const sug = document.createElement('div'); sug.className = 'sugg';
+      sw.appendChild(ico); sw.appendChild(inp); sw.appendChild(sug); card.appendChild(sw);
+      const sel = document.createElement('select');
+      const o0 = document.createElement('option'); o0.value = ''; o0.textContent = '-- Seleziona --'; sel.appendChild(o0);
+      soloSpina().forEach(b => { const o = document.createElement('option'); o.value = b.id; o.textContent = b.nome + ' — ' + b.birrificio + ' (' + b.gradazione_alcolica + '%)'; if (has && spina.birra.id === b.id) o.selected = true; sel.appendChild(o); });
+      sel.style.display = 'none'; card.appendChild(sel);
+      const cnt = document.createElement('div'); cnt.className = 'beer-cnt'; cnt.textContent = soloSpina().length + ' birre'; card.appendChild(cnt);
+      inp.addEventListener('input', function() {
+        const t = this.value.toLowerCase().trim(); sug.innerHTML = '';
+        if (!t) { sug.style.display = 'none'; cnt.textContent = soloSpina().length + ' birre'; return; }
+        const f = soloSpina().filter(b => b.nome.toLowerCase().includes(t) || b.birrificio.toLowerCase().includes(t));
+        cnt.textContent = f.length + ' trovate';
+        if (!f.length) { sug.style.display = 'none'; return; }
+        f.forEach(b => {
+          const it = document.createElement('div'); it.className = 'si';
+          it.innerHTML = '<strong>' + b.nome + '</strong><span>' + b.birrificio + ' · ' + b.gradazione_alcolica + '%</span>';
+          it.addEventListener('mousedown', () => { Array.from(sel.options).forEach(o => { o.selected = parseInt(o.value) === b.id; }); inp.value = b.nome + ' — ' + b.birrificio; sug.innerHTML = ''; sug.style.display = 'none'; cnt.textContent = 'Sel: ' + b.nome; });
+          sug.appendChild(it);
+        });
+        sug.style.display = 'block';
+      });
+      inp.addEventListener('blur', () => setTimeout(() => { sug.style.display = 'none'; }, 150));
+      const row = document.createElement('div'); row.className = 'btn-row';
+      const bu = document.createElement('button'); bu.className = 'btn btn-p'; bu.textContent = 'Aggiorna'; bu.addEventListener('click', () => cambiaSpina(spina.numero_spina, sel));
+      const bc = document.createElement('button'); bc.className = 'btn btn-g'; bc.textContent = 'Svuota'; bc.addEventListener('click', () => svuotaSpina(spina.numero_spina));
+      row.appendChild(bu); row.appendChild(bc); card.appendChild(row);
+      grid.appendChild(card);
+    });
+  }
+
+  async function cambiaSpina(n, sel) {
+    const id = parseInt(sel.value); if (!id) { notify('Seleziona una birra', 'err'); return; }
+    const r = await fetch('/api/spine/aggiorna', { method:'POST', headers:{'Content-Type':'application/json','X-Admin-Password':pw}, body:JSON.stringify({numero_spina:n,birra_id:id}) });
+    const d = await r.json();
+    if (d.success) { notify('Spina ' + n + ' aggiornata', 'ok'); await caricaSpine(); } else notify(d.message||'Errore','err');
+  }
+
+  async function svuotaSpina(n) {
+    if (!confirm('Svuotare la Spina ' + n + '?')) return;
+    const r = await fetch('/api/spine/aggiorna', { method:'POST', headers:{'Content-Type':'application/json','X-Admin-Password':pw}, body:JSON.stringify({numero_spina:n,birra_id:null}) });
+    const d = await r.json();
+    if (d.success) { notify('Spina ' + n + ' svuotata', 'ok'); await caricaSpine(); } else notify(d.message||'Errore','err');
+  }
+
+  /* ── LATTINE ── */
+  function renderLattine() {
+    const grid = document.getElementById('latGrid');
+    const tutte = catalogo.filter(b => b.formato === 'lattina');
+    document.getElementById('latSub').textContent = tutte.filter(b => b.disponibile).length + '/' + tutte.length + ' disponibili';
+    grid.innerHTML = '';
+    if (!tutte.length) { grid.innerHTML = '<p style="color:var(--muted);font-size:.85rem;">Nessuna lattina nel catalogo</p>'; return; }
+    const sw = document.createElement('div'); sw.className = 'sw'; sw.style.marginBottom = '16px';
+    const ico = document.createElement('span'); ico.className = 'ico'; ico.textContent = '🔍';
+    const inp = document.createElement('input'); inp.type = 'text'; inp.placeholder = 'Cerca lattina...';
+    const sug = document.createElement('div'); sug.className = 'sugg';
+    sw.appendChild(ico); sw.appendChild(inp); sw.appendChild(sug); grid.appendChild(sw);
+    const cnt = document.createElement('div'); cnt.className = 'beer-cnt'; cnt.textContent = tutte.length + ' lattine'; grid.appendChild(cnt);
+    inp.addEventListener('input', function() {
+      const t = this.value.toLowerCase().trim(); sug.innerHTML = '';
+      if (!t) { sug.style.display = 'none'; cnt.textContent = tutte.length + ' lattine'; renderLatCards(grid, tutte); return; }
+      const f = tutte.filter(b => b.nome.toLowerCase().includes(t) || b.birrificio.toLowerCase().includes(t) || (b.tipologia && b.tipologia.toLowerCase().includes(t)));
+      cnt.textContent = f.length + ' trovate';
+      f.forEach(b => {
+        const it = document.createElement('div'); it.className = 'si';
+        it.innerHTML = '<strong>' + b.nome + '</strong><span>' + b.birrificio + (b.tipologia ? ' · ' + b.tipologia : '') + '</span>';
+        it.addEventListener('mousedown', () => { inp.value = b.nome; sug.innerHTML = ''; sug.style.display = 'none'; renderLatCards(grid, [b]); });
+        sug.appendChild(it);
+      });
+      sug.style.display = f.length ? 'block' : 'none';
+    });
+    inp.addEventListener('blur', () => setTimeout(() => { sug.style.display = 'none'; }, 150));
+    renderLatCards(grid, tutte);
+  }
+
+  function renderLatCards(grid, lista) {
+    grid.querySelectorAll('.lat-card').forEach(c => c.remove());
+    lista.forEach(b => {
+      const card = document.createElement('div'); card.className = 'lat-card ' + (b.disponibile ? 'disp' : 'esau');
+      const info = document.createElement('div'); info.className = 'lat-info';
+      const nome = document.createElement('div'); nome.className = 'lat-nome'; nome.textContent = b.nome;
+      const meta = document.createElement('div'); meta.className = 'lat-meta'; meta.textContent = b.birrificio + ' · ' + b.gradazione_alcolica + '% · €' + (b.prezzo_unico||0).toFixed(2) + (b.tipologia ? ' · ' + b.tipologia : '');
+      info.appendChild(nome); info.appendChild(meta);
+      if (b.gluten_free) { const gf = document.createElement('span'); gf.textContent = '🌾 GF'; gf.style.cssText = 'display:inline-block;margin-top:4px;padding:1px 8px;background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.3);border-radius:20px;font-size:.7rem;font-weight:700;color:#4ade80;'; info.appendChild(gf); }
+      card.appendChild(info);
+      const imgF = document.createElement('div'); imgF.className = 'lat-img';
+      const imgI = document.createElement('input'); imgI.type = 'text'; imgI.placeholder = '/images/nome.png'; imgI.value = b.immagine_url || '';
+      const imgB = document.createElement('button'); imgB.className = 'btn-img'; imgB.textContent = '💾 Salva'; imgB.addEventListener('click', () => salvaImg(b.id, imgI));
+      imgF.appendChild(imgI); imgF.appendChild(imgB); card.appendChild(imgF);
+      const tog = document.createElement('button'); tog.className = 'tog ' + (b.disponibile ? 'on' : 'off'); tog.textContent = b.disponibile ? '✓ Disponibile' : '✗ Esaurita';
+      tog.addEventListener('click', () => togLat(b.id)); card.appendChild(tog);
+      grid.appendChild(card);
+    });
+  }
+
+  async function togLat(id) {
+    const r = await fetch('/api/lattine/toggle', { method:'POST', headers:{'Content-Type':'application/json','X-Admin-Password':pw}, body:JSON.stringify({birra_id:id}) });
+    const d = await r.json();
+    if (d.success) { const b = catalogo.find(x => x.id === id); if (b) b.disponibile = d.data.disponibile; notify(d.data.nome + ': ' + (d.data.disponibile ? 'Disponibile' : 'Esaurita'), 'ok'); renderLattine(); } else notify(d.message||'Errore','err');
+  }
+
+  async function salvaImg(id, inp) {
+    const r = await fetch('/api/admin/immagine', { method:'POST', headers:{'Content-Type':'application/json','X-Admin-Password':pw}, body:JSON.stringify({birra_id:id,immagine_url:inp.value.trim()||null}) });
+    const d = await r.json();
+    if (d.success) { const b = catalogo.find(x => x.id === id); if (b) b.immagine_url = d.data.immagine_url; notify('Immagine aggiornata','ok'); } else notify(d.message||'Errore','err');
+  }
+
+  /* ── CATALOGO CRUD ── */
+  function setFmt(fmt, btn) {
+    fmtF = fmt;
+    document.querySelectorAll('.fpill').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderCatalogo();
+  }
+
+  function renderCatalogo() {
+    const term = (document.getElementById('catSearch').value || '').toLowerCase().trim();
+    let lista = [...catalogo];
+    if (fmtF !== 'tutti') lista = lista.filter(b => b.formato === fmtF);
+    if (term) lista = lista.filter(b => b.nome.toLowerCase().includes(term) || b.birrificio.toLowerCase().includes(term) || (b.tipologia && b.tipologia.toLowerCase().includes(term)));
+    document.getElementById('catSub').textContent = catalogo.filter(b => b.disponibile).length + '/' + catalogo.length + ' disponibili';
+    document.getElementById('catCnt').textContent = lista.length + ' birre';
+    const list = document.getElementById('catList'); list.innerHTML = '';
+    if (!lista.length) { list.innerHTML = '<p style="color:var(--muted);font-size:.85rem;">Nessuna birra trovata.</p>'; return; }
+    lista.forEach(b => {
+      const row = document.createElement('div'); row.className = 'br ' + (b.disponibile ? 'ok' : 'no');
+      const info = document.createElement('div'); info.className = 'br-info';
+      const nome = document.createElement('div'); nome.className = 'br-nome'; nome.textContent = b.nome + (b.formato === 'spina' ? ' 🍺' : ' 🥫');
+      const meta = document.createElement('div'); meta.className = 'br-meta';
+      const pr = b.formato === 'spina' ? '€' + b.prezzo_piccola + '/' + b.prezzo_media : '€' + (b.prezzo_unico || '—');
+      meta.textContent = b.birrificio + ' · ' + (b.tipologia || '—') + ' · ' + b.gradazione_alcolica + '% · ' + pr;
+      info.appendChild(nome); info.appendChild(meta);
+      const acts = document.createElement('div'); acts.className = 'br-acts';
+      const togB = document.createElement('button'); togB.className = 'tog ' + (b.disponibile ? 'on' : 'off'); togB.textContent = b.disponibile ? '✓ Disp.' : '✗ Esau.'; togB.addEventListener('click', () => togDisp(b.id)); acts.appendChild(togB);
+      const edB = document.createElement('button'); edB.className = 'btn-ed'; edB.textContent = '✏️ Modifica'; edB.addEventListener('click', () => loadForm(b)); acts.appendChild(edB);
+      const delB = document.createElement('button'); delB.className = 'btn-del'; delB.textContent = '🗑️ Elimina'; delB.addEventListener('click', () => delBirra(b.id, b.nome)); acts.appendChild(delB);
+      row.appendChild(info); row.appendChild(acts); list.appendChild(row);
+    });
+  }
+
+  function resetForm() {
+    document.getElementById('editId').value = '';
+    document.getElementById('formTitle').textContent = 'Aggiungi Nuova Birra';
+    ['fNome','fBirr','fTipo','fGrad','fPicco','fMedia','fUnico','fImg'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('fFmt').value = 'spina';
+    document.getElementById('fGF').checked = false;
+    document.getElementById('fAnc').checked = false;
+    document.getElementById('fDisp').checked = true;
+    document.getElementById('beerForm').scrollIntoView({ behavior:'smooth' });
+  }
+
+  function loadForm(b) {
+    document.getElementById('editId').value          = b.id;
+    document.getElementById('formTitle').textContent = 'Modifica: ' + b.nome;
+    document.getElementById('fNome').value           = b.nome || '';
+    document.getElementById('fBirr').value           = b.birrificio || '';
+    document.getElementById('fTipo').value           = b.tipologia || '';
+    document.getElementById('fGrad').value           = b.gradazione_alcolica != null ? b.gradazione_alcolica : '';
+    document.getElementById('fFmt').value            = b.formato || 'spina';
+    document.getElementById('fPicco').value          = b.prezzo_piccola != null ? b.prezzo_piccola : '';
+    document.getElementById('fMedia').value          = b.prezzo_media   != null ? b.prezzo_media   : '';
+    document.getElementById('fUnico').value          = b.prezzo_unico   != null ? b.prezzo_unico   : '';
+    document.getElementById('fImg').value            = b.immagine_url || '';
+    document.getElementById('fGF').checked           = !!b.gluten_free;
+    document.getElementById('fAnc').checked          = !!b.analcolico;
+    document.getElementById('fDisp').checked         = b.disponibile !== false;
+    document.getElementById('beerForm').scrollIntoView({ behavior:'smooth' });
+  }
+
+  async function salvaBirra() {
+    const editId = document.getElementById('editId').value.trim();
+    const isEdit = !!editId;
+    const payload = {
+      nome:                document.getElementById('fNome').value.trim(),
+      birrificio:          document.getElementById('fBirr').value.trim(),
+      tipologia:           document.getElementById('fTipo').value.trim() || null,
+      gradazione_alcolica: parseFloat(document.getElementById('fGrad').value) || 0,
+      formato:             document.getElementById('fFmt').value,
+      prezzo_piccola:      document.getElementById('fPicco').value !== '' ? parseFloat(document.getElementById('fPicco').value) : null,
+      prezzo_media:        document.getElementById('fMedia').value !== '' ? parseFloat(document.getElementById('fMedia').value) : null,
+      prezzo_unico:        document.getElementById('fUnico').value !== '' ? parseFloat(document.getElementById('fUnico').value) : null,
+      immagine_url:        document.getElementById('fImg').value.trim() || null,
+      gluten_free:         document.getElementById('fGF').checked,
+      analcolico:          document.getElementById('fAnc').checked,
+      disponibile:         document.getElementById('fDisp').checked,
+    };
+    if (!payload.nome || !payload.birrificio) { notify('Nome e Birrificio obbligatori', 'err'); return; }
+    try {
+      const r = await fetch(isEdit ? '/api/admin/birre/' + editId : '/api/admin/birre', {
+        method: isEdit ? 'PUT' : 'POST',
+        headers: { 'Content-Type':'application/json', 'X-Admin-Password':pw },
+        body: JSON.stringify(payload),
+      });
+      const d = await r.json();
+      if (d.success) {
+        if (isEdit) { const i = catalogo.findIndex(b => b.id === parseInt(editId)); if (i !== -1) catalogo[i] = d.data; }
+        else catalogo.push(d.data);
+        notify((isEdit ? 'Birra aggiornata' : 'Birra aggiunta') + ': ' + d.data.nome, 'ok');
+        resetForm(); renderCatalogo(); renderLattine();
+        if (d.data.formato === 'spina') await caricaSpine();
+      } else notify(d.message || 'Errore', 'err');
+    } catch { notify('Errore di connessione', 'err'); }
+  }
+
+  async function togDisp(id) {
+    const r = await fetch('/api/admin/birre/' + id + '/toggle', { method:'POST', headers:{'Content-Type':'application/json','X-Admin-Password':pw}, body:'{}' });
+    const d = await r.json();
+    if (d.success) { const b = catalogo.find(x => x.id === id); if (b) b.disponibile = d.data.disponibile; notify(d.data.nome + ': ' + (d.data.disponibile ? 'Disponibile' : 'Non disponibile'), 'ok'); renderCatalogo(); if (d.data.formato === 'spina') await caricaSpine(); }
+    else notify(d.message || 'Errore', 'err');
+  }
+
+  async function delBirra(id, nome) {
+    if (!confirm('Eliminare "' + nome + '"? Azione non reversibile.')) return;
+    const r = await fetch('/api/admin/birre/' + id, { method:'DELETE', headers:{'X-Admin-Password':pw} });
+    const d = await r.json();
+    if (d.success) { catalogo = catalogo.filter(b => b.id !== id); notify('"' + nome + '" eliminata', 'ok'); renderCatalogo(); renderLattine(); await caricaSpine(); }
+    else notify(d.message || 'Errore', 'err');
+  }
+
+  /* NOTIFY */
+  function notify(msg, type) {
+    const el = document.createElement('div');
+    el.className = 'notif n-' + (type === 'ok' ? 'ok' : 'err');
+    el.textContent = msg;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 3200);
+  }
+</script>
+</body>
+</html>
