@@ -226,6 +226,7 @@ const db = {
   creaBirra: async (payload) => {
     const { nome, birrificio, tipologia, gradazione_alcolica, formato,
             prezzo_piccola, prezzo_media, prezzo_unico,
+            volume_piccola, volume_media,
             gluten_free, analcolico, disponibile, immagine_url } = payload;
     if (!nome || !birrificio || !formato)
       throw new Error('nome, birrificio e formato sono obbligatori');
@@ -241,6 +242,8 @@ const db = {
         prezzo_piccola: prezzo_piccola != null && prezzo_piccola !== '' ? parseFloat(prezzo_piccola) : null,
         prezzo_media:   prezzo_media   != null && prezzo_media   !== '' ? parseFloat(prezzo_media)   : null,
         prezzo_unico:   prezzo_unico   != null && prezzo_unico   !== '' ? parseFloat(prezzo_unico)   : null,
+        volume_piccola: volume_piccola || null,
+        volume_media:   volume_media   || null,
         gluten_free:    !!gluten_free,
         analcolico:     !!analcolico,
         disponibile:    disponibile !== false,
@@ -254,6 +257,7 @@ const db = {
   aggiornaBirra: async (id, payload) => {
     const allowed = ['nome','birrificio','tipologia','gradazione_alcolica',
                      'prezzo_piccola','prezzo_media','prezzo_unico',
+                     'volume_piccola','volume_media',
                      'gluten_free','analcolico','disponibile','immagine_url','formato'];
     const patch = {};
     for (const k of allowed) {
