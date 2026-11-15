@@ -204,7 +204,9 @@
             <input type="number" id="fGrad"   placeholder="Gradazione %" step="0.1" min="0">
             <select id="fFmt"><option value="spina">Alla Spina</option><option value="lattina">Lattina / Bottiglia</option></select>
             <input type="number" id="fPicco"  placeholder="Prezzo piccola (spina)" step="0.1" min="0">
+            <input type="text"   id="fVolPicco" placeholder="Litri piccola (es. 0,33) — vuoto = 0,2">
             <input type="number" id="fMedia"  placeholder="Prezzo media (spina)"   step="0.1" min="0">
+            <input type="text"   id="fVolMedia" placeholder="Litri media (es. 0,5) — vuoto = 0,4">
             <input type="number" id="fUnico"  placeholder="Prezzo unico (lattina)" step="0.1" min="0">
             <input type="text"   id="fImg"    placeholder="URL immagine (/images/nome.png)" class="fr">
           </div>
@@ -422,7 +424,9 @@
       const info = document.createElement('div'); info.className = 'br-info';
       const nome = document.createElement('div'); nome.className = 'br-nome'; nome.textContent = b.nome + (b.formato === 'spina' ? ' 🍺' : ' 🥫');
       const meta = document.createElement('div'); meta.className = 'br-meta';
-      const pr = b.formato === 'spina' ? '€' + b.prezzo_piccola + '/' + b.prezzo_media : '€' + (b.prezzo_unico || '—');
+      const pr = b.formato === 'spina'
+        ? '€' + b.prezzo_piccola + ' (' + (b.volume_piccola || '0,2 L') + ') / €' + b.prezzo_media + ' (' + (b.volume_media || '0,4 L') + ')'
+        : '€' + (b.prezzo_unico || '—');
       meta.textContent = b.birrificio + ' · ' + (b.tipologia || '—') + ' · ' + b.gradazione_alcolica + '% · ' + pr;
       info.appendChild(nome); info.appendChild(meta);
       const acts = document.createElement('div'); acts.className = 'br-acts';
@@ -436,7 +440,7 @@
   function resetForm() {
     document.getElementById('editId').value = '';
     document.getElementById('formTitle').textContent = 'Aggiungi Nuova Birra';
-    ['fNome','fBirr','fTipo','fGrad','fPicco','fMedia','fUnico','fImg'].forEach(id => document.getElementById(id).value = '');
+    ['fNome','fBirr','fTipo','fGrad','fPicco','fVolPicco','fMedia','fVolMedia','fUnico','fImg'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('fFmt').value = 'spina';
     document.getElementById('fGF').checked = false;
     document.getElementById('fAnc').checked = false;
@@ -454,12 +458,20 @@
     document.getElementById('fFmt').value            = b.formato || 'spina';
     document.getElementById('fPicco').value          = b.prezzo_piccola != null ? b.prezzo_piccola : '';
     document.getElementById('fMedia').value          = b.prezzo_media   != null ? b.prezzo_media   : '';
+    document.getElementById('fVolPicco').value       = b.volume_piccola || '';
+    document.getElementById('fVolMedia').value       = b.volume_media   || '';
     document.getElementById('fUnico').value          = b.prezzo_unico   != null ? b.prezzo_unico   : '';
     document.getElementById('fImg').value            = b.immagine_url || '';
     document.getElementById('fGF').checked           = !!b.gluten_free;
     document.getElementById('fAnc').checked          = !!b.analcolico;
     document.getElementById('fDisp').checked         = b.disponibile !== false;
     document.getElementById('beerForm').scrollIntoView({ behavior:'smooth' });
+  }
+
+  // "0.33", "0,33l", "0,33 L" → "0,33 L"; vuoto → null (il menu usa il default 0,2 / 0,4)
+  function normVolume(v) {
+    v = (v || '').trim().replace(/\s*l(itri)?\s*$/i, '').replace('.', ',').trim();
+    return v ? v + ' L' : null;
   }
 
   async function salvaBirra() {
@@ -474,6 +486,8 @@
       prezzo_piccola:      document.getElementById('fPicco').value !== '' ? parseFloat(document.getElementById('fPicco').value) : null,
       prezzo_media:        document.getElementById('fMedia').value !== '' ? parseFloat(document.getElementById('fMedia').value) : null,
       prezzo_unico:        document.getElementById('fUnico').value !== '' ? parseFloat(document.getElementById('fUnico').value) : null,
+      volume_piccola:      normVolume(document.getElementById('fVolPicco').value),
+      volume_media:        normVolume(document.getElementById('fVolMedia').value),
       immagine_url:        document.getElementById('fImg').value.trim() || null,
       gluten_free:         document.getElementById('fGF').checked,
       analcolico:          document.getElementById('fAnc').checked,
