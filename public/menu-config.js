@@ -33,7 +33,7 @@
       { key: 'rum', label: 'Rum', sources: ['Rum', 'Rum / Whisky / Tekila'] },
       { key: 'whisky', label: 'Whisky', sources: ['Whisky'] },
       { key: 'tequila', label: 'Tequila', sources: ['Tekila', 'Tequila'] },
-      { key: 'vini', label: 'Vini', sources: ['Vini', 'Vino'] },
+      { key: 'vini', label: 'Vini', sources: ['Vini', 'Vino'] },
       { key: 'analcolici', label: 'Analcolici', sources: ['Analcolici', 'Analcolici / Bibite'] },
       { key: 'bibite', label: 'Bibite', sources: ['Bibite'] },
       { key: 'amari', label: 'Amari', sources: ['Amari', 'Amari / Grappe'] },
@@ -116,6 +116,20 @@
     return BADGE_TYPES[norm] || BADGE_TYPES[norm.toUpperCase()] || null;
   }
 
+  // Se tutto è evidenziato niente lo è: per categoria si mostrano al massimo 2 badge
+  const MAX_BADGES_PER_CATEGORY = 2;
+  const BADGE_PRIORITY = { 'BEST SELLER': 0, 'CONSIGLIATO': 1, 'NOVITÀ': 2 };
+
+  /** Id dei prodotti di una categoria che mostrano il badge: prima Best seller, poi Consigliato, poi Novità; a parità vince chi è più in alto. */
+  function visibleBadgeIds(items) {
+    const rank = i => BADGE_PRIORITY[normalizeBadge(i.badge)] ?? 3;
+    return new Set(items
+      .filter(i => i.available !== false && normalizeBadge(i.badge))
+      .sort((a, b) => rank(a) - rank(b) || (a.ordine ?? Infinity) - (b.ordine ?? Infinity))
+      .slice(0, MAX_BADGES_PER_CATEGORY)
+      .map(i => i.id));
+  }
+
   function formatDescription(str) {
     if (!str || typeof str !== 'string') return '';
     return str
@@ -134,6 +148,8 @@
     getSubCategoryOptions,
     normalizeBadge,
     getBadgeMeta,
+    MAX_BADGES_PER_CATEGORY,
+    visibleBadgeIds,
     formatDescription,
   };
 })(typeof window !== 'undefined' ? window : global);

@@ -3,7 +3,8 @@
 -- Esegui questo script nell'SQL Editor di Supabase
 -- ============================================================
 
-DROP TABLE IF EXISTS menu_generale;
+-- ATTENZIONE: la riga sotto CANCELLA tutto il menu. Lasciala commentata (CREATE TABLE IF NOT EXISTS basta).
+-- DROP TABLE IF EXISTS menu_generale;
 
 -- Tabella menu_generale
 CREATE TABLE IF NOT EXISTS menu_generale (

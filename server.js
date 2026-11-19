@@ -4,11 +4,12 @@ const express = require('express');
 const { createServer } = require('http');
 const { Server } = require('socket.io');
 const helmet = require('helmet');
-const fs = require('fs');
+const crypto = require('crypto');
 const { createClient } = require('@supabase/supabase-js');
 
 const PORT = process.env.PORT || 3002;
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
+// Nessuna password di default: se manca, il pannello admin resta chiuso (il menu pubblico funziona lo stesso)
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '';
 const ADMIN_SECRET_PATH = process.env.ADMIN_SECRET_PATH || 'admin-panel';
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_KEY;
@@ -19,6 +20,19 @@ if (!SUPABASE_URL || !SUPABASE_KEY) {
 }
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+// Le tabelle birre/spine possono stare in un altro progetto Supabase (ex servizio tap-menu)
+const supabaseBirre = process.env.BIRRE_SUPABASE_URL
+  ? createClient(process.env.BIRRE_SUPABASE_URL, process.env.BIRRE_SUPABASE_KEY)
+  : supabase;
+
+// Che tipo di chiave Supabase è stata messa nelle variabili d'ambiente (senza mai stamparla)
+function ruoloChiave(key) {
+  if (!key) return 'mancante';
+  if (key.startsWith('sb_secret_')) return 'secret';
+  if (key.startsWith('sb_publishable_')) return 'publishable';
+  try { return JSON.parse(Buffer.from(key.split('.')[1], 'base64url').toString()).role || 'sconosciuto'; }
+  catch { return 'sconosciuto'; }
+}
 
 // =============================================================================
 // LOGGER
@@ -179,30 +193,44 @@ const db = {
 
 const app = express();
 const httpServer = createServer(app);
-const io = new Server(httpServer, {
-  cors: { origin: process.env.NODE_ENV === 'production' ? false : '*', methods: ['GET', 'POST'] },
-});
+// Nessun CORS: il menu si collega dallo stesso indirizzo, altri siti non possono usare il live
+const io = new Server(httpServer);
+
+// Render passa le richieste da un proxy: serve per avere il vero IP del cliente (blocco tentativi password)
+app.set('trust proxy', 1);
 
 app.use(helmet({
-  contentSecurityPolicy: false,
+  // Le pagine possono caricare script/stili solo da qui (+ Google Fonts) e parlare solo con questo server
+  contentSecurityPolicy: {
+    useDefaults: true,
+    directives: {
+      'script-src': ["'self'", "'unsafe-inline'"],    // script scritti dentro le pagine
+      'script-src-attr': ["'unsafe-inline'"],           // onclick dei pannelli admin
+      'style-src': ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+      'font-src': ["'self'", 'https://fonts.gstatic.com'],
+      'img-src': ["'self'", 'data:', 'https:'],         // l'admin accetta anche URL di immagini esterne
+      'connect-src': ["'self'"],
+      'frame-ancestors': ["'none'"],
+      'upgrade-insecure-requests': null,                // Render è già tutto https; in locale romperebbe l'anteprima
+    },
+  },
   crossOriginResourcePolicy: { policy: 'cross-origin' },
 }));
-app.use(express.json());
+app.use(express.json({ limit: '50kb' }));
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(express.static(__dirname));
+// Alcune immagini birre nel DB sono salvate come "public/images/..."
+app.use('/public', express.static(path.join(__dirname, 'public')));
 
 // ── HTML routes ──
-const serveHtml = (file) => (req, res) => {
-  const inPublic = path.join(__dirname, 'public', file);
-  const inRoot = path.join(__dirname, file);
-  res.sendFile(fs.existsSync(inPublic) ? inPublic : inRoot);
-};
+const serveHtml = (file) => (req, res) => res.sendFile(path.join(__dirname, file));
 
-app.get('/', serveHtml('cibo-drink.html'));
-app.get('/cibo-drink', serveHtml('cibo-drink.html'));
+// Menu unico (index.html) — i vecchi link dei QR portano alla sezione giusta
+app.get(['/cibo-drink', '/cibo-drink.html'], (req, res) => res.redirect('/'));
+app.get(['/cliente', '/cliente.html'], (req, res) => res.redirect('/#birre'));
 
-// Pannello admin — accessibile SOLO tramite il percorso segreto
-app.get('/' + ADMIN_SECRET_PATH, serveHtml('admin-cibo-drink.html'));
+// Pannelli admin — accessibili SOLO tramite il percorso segreto
+app.get('/' + ADMIN_SECRET_PATH, serveHtml('admin/admin-cibo-drink.html'));
+app.get('/' + ADMIN_SECRET_PATH + '/birre', serveHtml('admin/admin-birre.html'));
 
 // Tutte le altre route /admin* restituiscono 404 (nessuna discovery)
 app.get('/admin', (req, res) => res.status(404).send('Not found'));
@@ -214,13 +242,44 @@ logger.info(`Admin path: /${ADMIN_SECRET_PATH} (tienilo segreto!)`);
 // MIDDLEWARE — auth guard
 // =============================================================================
 
+// Confronto a tempo costante (non si può indovinare la password misurando i tempi di risposta)
+const pwHash = ADMIN_PASSWORD && crypto.createHash('sha256').update(ADMIN_PASSWORD).digest();
+const passwordOk = (pw) => !!pwHash && typeof pw === 'string'
+  && crypto.timingSafeEqual(crypto.createHash('sha256').update(pw).digest(), pwHash);
+
+// Anti forza bruta: dopo MAX_FAILS password sbagliate dallo stesso IP, blocco per FAIL_WINDOW_MS
+const FAIL_WINDOW_MS = 15 * 60 * 1000;
+const MAX_FAILS = 10;
+const fails = new Map(); // ip -> { n, until }
+setInterval(() => { const now = Date.now(); for (const [ip, f] of fails) if (f.until < now) fails.delete(ip); }, FAIL_WINDOW_MS).unref();
+
 const requireAdmin = (req, res, next) => {
-  if (req.headers['x-admin-password'] !== ADMIN_PASSWORD) {
-    logger.warn(`Accesso non autorizzato da ${req.ip}`);
+  const now = Date.now();
+  let f = fails.get(req.ip);
+  if (f && f.until < now) { fails.delete(req.ip); f = null; }
+  if (f && f.n >= MAX_FAILS) {
+    return res.status(429).json({ success: false, message: 'Troppi tentativi sbagliati, riprova tra 15 minuti' });
+  }
+  if (!passwordOk(req.headers['x-admin-password'])) {
+    f = f || { n: 0, until: now + FAIL_WINDOW_MS };
+    f.n++;
+    fails.set(req.ip, f);
+    logger.warn(`Accesso non autorizzato da ${req.ip} (tentativo ${f.n}/${MAX_FAILS})`);
     return res.status(401).json({ success: false, message: 'Password non valida' });
   }
   next();
 };
+
+if (!ADMIN_PASSWORD) logger.error('ADMIN_PASSWORD non impostata: pannello admin disattivato finché non la aggiungi su Render');
+else if (ADMIN_PASSWORD.length < 12) logger.warn('ADMIN_PASSWORD è corta: usa almeno 12 caratteri (meglio una frase)');
+for (const [nome, key] of [['SUPABASE_KEY', SUPABASE_KEY], ['BIRRE_SUPABASE_KEY', process.env.BIRRE_SUPABASE_URL && process.env.BIRRE_SUPABASE_KEY]]) {
+  if (key === undefined) continue;
+  const ruolo = ruoloChiave(key);
+  if (['service_role', 'secret'].includes(ruolo)) logger.info(`${nome}: chiave server (${ruolo}) OK`);
+  else logger.warn(`${nome}: chiave di tipo "${ruolo}", serve la service_role/secret. NON eseguire supabase/sicurezza.sql finché non la cambi, o il menu non potrà più salvare`);
+}
+
+const birreReady = require('./birre')({ app, io, supabase: supabaseBirre, requireAdmin, logger });
 
 // =============================================================================
 // ROUTES — PUBLIC
@@ -229,7 +288,7 @@ const requireAdmin = (req, res, next) => {
 // Tutti gli items disponibili (usato da cibo-drink.html)
 app.get('/api/menu', async (req, res) => {
   try { res.json({ success: true, data: await db.getMenuDisponibile() }); }
-  catch (err) { logger.error('GET /api/menu', err); res.status(500).json({ success: false, message: err.message }); }
+  catch (err) { logger.error('GET /api/menu', err); res.status(500).json({ success: false, message: 'Errore interno' }); }
 });
 
 // =============================================================================
@@ -348,11 +407,11 @@ app.use((err, req, res, next) => {
   res.status(500).json({ success: false, message: 'Errore interno del server' });
 });
 
-initDB().then(() => {
+Promise.all([initDB(), birreReady]).then(() => {
   httpServer.listen(PORT, () => {
     logger.info(`Server avviato su :${PORT}`);
     logger.info(`Cliente → http://localhost:${PORT}/`);
-    logger.info(`Admin   → http://localhost:${PORT}/admin`);
+    logger.info(`Admin   → http://localhost:${PORT}/${ADMIN_SECRET_PATH} (birre: /${ADMIN_SECRET_PATH}/birre)`);
   });
 });
 
